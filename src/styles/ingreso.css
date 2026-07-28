@@ -482,13 +482,20 @@ h1{
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:28px 18px 110px;
+  padding:28px 18px 85px;
 }
 .app-scroll > *{width:100%;max-width:380px;}
 
 /* ---- Header: logo + saludo + descripción ---- */
 .app-header{text-align:center;margin-bottom:22px;}
-.app-header-logo{width:80px;height:80px;object-fit:contain;margin:0 auto -5px;display:block;}
+
+.app-header-logo{
+  width:80px;
+  height:80px;
+  object-fit:contain;
+  margin:0 auto;
+  display:block;
+}
 
 .app-greeting{
   font-family:'Tusker';
@@ -539,7 +546,7 @@ h1{
 
 .event-card-tag{
   position:absolute;
-  top:60px;
+  top:59.5px;
   background:var(--brand-orange);
   color:#fff;
   font-family:'Montserrat';

@@ -338,88 +338,107 @@ h1{
 .promo-modal-close:hover{background:#fff;}
 
 /* ---- Ticket (día ya elegido) ---- */
-.ticket-v2{
+.ticket{
   position:relative;
   background:var(--paper);
   color:var(--ink);
   border-radius:var(--radius);
-  padding:24px 22px 20px;
+  overflow:visible;
   box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+}
+.t-top{padding:26px 24px 20px;}
+.t-brand{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:18px;
+}
+.t-brand .name{
+  font-family:'Tusker',sans-serif;
+  font-weight:700;
+  font-size:20px;
+  line-height:1.15;
+  max-width:220px;
+}
+.status-chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  padding:5px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.status-chip.valid{background:rgba(47,174,92,.12);color:var(--green);}
+.status-chip.used{background:rgba(224,71,62,.12);color:var(--red);}
+
+.t-datebox{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  padding-top:14px;
+  border-top:1px dashed rgba(16,19,28,.15);
+}
+.t-datebox .date-num{
+  font-family:'Tusker',sans-serif;
+  font-weight:700;
+  font-size:32px;
+  color:var(--gold-deep);
+  line-height:1;
+}
+.t-datebox .date-sub{
+  font-size:12px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.t-datebox .divider{width:1px;height:34px;background:rgba(16,19,28,.15);}
+.t-datebox .venue{font-size:14px;font-weight:600;}
+.t-datebox .venue-sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+.perforation{position:relative;height:0;}
+.perforation::before{
+  content:"";
+  position:absolute;
+  top:-1px;left:24px;right:24px;
+  border-top:2px dashed rgba(16,19,28,.18);
+}
+.notch{
+  position:absolute;
+  top:-13px;
+  width:26px;height:26px;
+  border-radius:50%;
+  background:var(--bg);
+}
+.notch.left{left:-13px;}
+.notch.right{right:-13px;}
+
+.t-bottom{
+  padding:26px 24px 28px;
   display:flex;
   flex-direction:column;
   align-items:center;
   text-align:center;
 }
-.ticket-v2-intro{
-  font-size:12.5px;
-  color:var(--muted);
-  line-height:1.4;
-  margin:0 0 18px;
-  max-width:280px;
+.attendee-name{
+  font-family:'Tusker',sans-serif;
+  font-weight:700;
+  font-size:17px;
+  margin-bottom:14px;
 }
-.ticket-v2-intro strong{color:var(--ink);font-weight:700;}
-.ticket-v2-qr{
-  padding:12px;
+.qr-holder{
+  padding:10px;
   background:#fff;
   border-radius:14px;
   border:1px solid rgba(16,19,28,.08);
-  margin-bottom:16px;
 }
-.ticket-v2-id{
-  background:var(--brand-orange);
-  color:#fff;
-  font-family:'Tusker',sans-serif;
-  font-weight:700;
-  font-size:14px;
-  letter-spacing:.06em;
-  padding:9px 22px;
-  border-radius:999px;
-  margin-bottom:14px;
-}
-.ticket-v2-event{
-  font-family:'Tusker',sans-serif;
-  font-weight:700;
-  font-size:19px;
-  line-height:1.15;
-}
-.ticket-v2-time{
-  font-family:'Tusker',sans-serif;
-  font-weight:700;
-  font-size:14px;
-  color:var(--brand-orange);
-  margin-top:2px;
-}
-.ticket-v2-meta{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:12px;
-  line-height:1.5;
-}
-.ticket-v2-status{
-  display:inline-block;
-  margin-top:8px;
+.ticket-code{
+  margin-top:14px;
   font-family:'JetBrains Mono',monospace;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.06em;
-  padding:4px 12px;
-  border-radius:999px;
-}
-.ticket-v2-status.valid{background:rgba(47,174,92,.12);color:var(--green);}
-.ticket-v2-status.used{background:rgba(224,71,62,.12);color:var(--red);}
-.ticket-v2-divider{
-  width:100%;
-  border-top:1px dashed rgba(16,19,28,.18);
-  margin:20px 0 16px;
-}
-.ticket-v2-notice{
-  font-size:11px;
+  font-size:13px;
+  letter-spacing:.14em;
   color:var(--muted);
-  line-height:1.5;
-  margin:0;
-  max-width:280px;
 }
-.ticket-v2-notice strong{color:var(--ink);}
 
 .test-banner{width:100%;max-width:380px;margin-bottom:18px;}
 .test-ids{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}

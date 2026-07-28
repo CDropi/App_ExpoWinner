@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { STAFF_PINS, MODO_PRUEBA } from '../config.js';
 import { procesarCheckin, obtenerContador } from '../dataLayer.js';
+import { useEsMobil } from '../useEsMobil.js';
+import SoloMobil from '../SoloMobil.jsx';
 import '../styles/staff.css';
 
 export default function Staff() {
+  const esMobil = useEsMobil();
   const [autorizado, setAutorizado] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
@@ -36,6 +39,8 @@ export default function Staff() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autorizado]);
+
+  if (!esMobil) return <SoloMobil />;
 
   function entrar() {
     if (STAFF_PINS.includes(pin.trim())) {

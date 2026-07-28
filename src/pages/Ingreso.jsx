@@ -5,6 +5,8 @@ import {
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia } from '../dataLayer.js';
+import { useEsMobil } from '../useEsMobil.js';
+import SoloMobil from '../SoloMobil.jsx';
 import '../styles/ingreso.css';
 
 const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
@@ -16,6 +18,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Ingreso() {
+  const esMobil = useEsMobil();
   const [introDone, setIntroDone] = useState(false);
   const [docValue, setDocValue] = useState('');
   const [errorHtml, setErrorHtml] = useState('');
@@ -61,6 +64,8 @@ export default function Ingreso() {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  if (!esMobil) return <SoloMobil />;
 
   async function buscarEntrada(idOverride) {
     const idValue = (idOverride ?? docValue).trim();
@@ -344,34 +349,32 @@ function IconMap() {
 function TicketCompleto({ dia, ticket, nombre }) {
   const partesFecha = dia.fecha.split(' ');
   return (
-    <div className="ticket">
-      <div className="t-top">
-        <div className="t-brand">
-          <div className="name">{EVENTO.nombre}</div>
-          <div className={`status-chip ${ticket.checkedIn ? 'used' : 'valid'}`}>
-            {ticket.checkedIn ? 'INGRESO REGISTRADO' : 'VÁLIDA'}
-          </div>
-        </div>
-        <div className="t-datebox">
-          <div>
-            <div className="date-num">{partesFecha[0]}</div>
-            <div className="date-sub">{partesFecha.slice(1).join(' ')} · {dia.hora}</div>
-          </div>
-          <div className="divider" />
-          <div>
-            <div className="venue">{dia.etiqueta}</div>
-            <div className="venue-sub">{EVENTO.lugar} · {EVENTO.ciudad}</div>
-          </div>
-        </div>
+    <div className="ticket-v2">
+      <p className="ticket-v2-intro">
+        Este es el código QR de tu entrada para el <strong>{dia.etiqueta}</strong> de <strong>{EVENTO.nombre}</strong>.
+      </p>
+
+      <div className="ticket-v2-qr">
+        <QRCodeSVG value={ticket.ticketCode} size={180} fgColor="#10131C" bgColor="#ffffff" level="M" />
       </div>
-      <div className="perforation"><div className="notch left" /><div className="notch right" /></div>
-      <div className="t-bottom">
-        <div className="attendee-name">{nombre}</div>
-        <div className="qr-holder">
-          <QRCodeSVG value={ticket.ticketCode} size={168} fgColor="#10131C" bgColor="#ffffff" level="M" />
-        </div>
-        <div className="ticket-code">{ticket.ticketCode}</div>
+
+      <div className="ticket-v2-id">ID {ticket.ticketCode}</div>
+
+      <div className="ticket-v2-event">{EVENTO.nombre}</div>
+      <div className="ticket-v2-time">{dia.hora}</div>
+
+      <div className="ticket-v2-meta">
+        {nombre} · {partesFecha[0]} {partesFecha.slice(1).join(' ')} · {EVENTO.lugar}, {EVENTO.ciudad}
       </div>
+      <div className={`ticket-v2-status ${ticket.checkedIn ? 'used' : 'valid'}`}>
+        {ticket.checkedIn ? 'Ya ingresó' : 'Válida'}
+      </div>
+
+      <div className="ticket-v2-divider" />
+
+      <p className="ticket-v2-notice">
+        <strong>Importante:</strong> Tu código QR es personal e intransferible. Consérvalo durante toda tu visita.
+      </p>
     </div>
   );
 }

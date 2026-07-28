@@ -704,6 +704,22 @@ h1{
   color:rgba(255,255,255,.55);
   cursor:pointer;
   transition:opacity .2s ease;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;
+  appearance:none;
+  outline:none !important;
+  box-shadow:none !important;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.nav-item:hover,
+.nav-item:focus,
+.nav-item:focus-visible,
+.nav-item:active{
+  outline:none !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  transform:none !important;
 }
 .nav-item svg{width:20px;height:20px;}
 .nav-item.active{opacity:0;}
@@ -713,10 +729,10 @@ h1{
    de arriba que se mueve con la misma duración/curva. */
 .nav-indicator{
   position:absolute;
-  top:-20px;
+  top:-22px;
   left:0;
   width:33.3333%;
-  height:56px;
+  height:60px;
   display:flex;align-items:center;justify-content:center;
   transition:transform .48s cubic-bezier(.34,1.56,.64,1);
   z-index:2;
@@ -724,13 +740,13 @@ h1{
 }
 .nav-indicator-circle{
   flex-shrink:0;
-  width:56px;height:56px;
+  width:60px;height:60px;
   border-radius:50%;
   background:var(--brand-orange);
   color:#fff;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 8px 16px -6px rgba(0,0,0,.5);
 }
-.nav-indicator-circle svg{width:24px;height:24px;}
+.nav-indicator-circle svg{width:25px;height:25px;}
 
 

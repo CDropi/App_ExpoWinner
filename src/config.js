@@ -42,7 +42,7 @@ export const IMAGEN_INTRO = "/media/Fondo_Intro.jpeg";
 export const IMAGEN_POPUP_PROMO = "/media/1.png";
 
 // 2.4) Imagen de fondo de toda la pantalla de ingreso (login + tabs de días).
-export const IMAGEN_FONDO_LOGIN = "/media/Fondo_Login.jpg";
+export const IMAGEN_FONDO_LOGIN = "/media/Fondo_Login.png";
 
 // 2.5) Logo que aparece en la pantalla de bienvenida (login).
 export const LOGO_LOGIN = "/media/Logo_ExpoWinner.png";

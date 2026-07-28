@@ -197,8 +197,6 @@ export default function Ingreso() {
                   )}
                 </div>
               )}
-
-              <div className="helper-note">Muestra el código QR del día correspondiente al personal en la entrada. No lo compartas: es único para tu número de celular.</div>
             </div>
 
             <div className="nav-wrapper">

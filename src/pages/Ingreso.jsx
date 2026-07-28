@@ -148,60 +148,66 @@ export default function Ingreso() {
         {persona && (
           <div className="app-shell">
             <div className="app-scroll">
-              <div className="app-header">
-                <img className="app-header-logo" src={LOGO_APP} alt="Logo" />
-                <h1 className="app-greeting">¡Hola <strong>{persona.nombre.split(' ')[0].toUpperCase()}</strong>!</h1>
-                <p className="app-greeting-sub">
-                  Selecciona el día al que asistirás. Al <strong>elegir tu entrada</strong>, podrás{' '}
-                  <strong>visualizar el código QR</strong> que deberás presentar en el ingreso al evento.
-                </p>
-              </div>
+              {navActive === 0 && (
+                <>
+                  <div className="app-header">
+                    <img className="app-header-logo" src={LOGO_APP} alt="Logo" />
+                    <h1 className="app-greeting">¡Hola <strong>{persona.nombre.split(' ')[0].toUpperCase()}</strong>!</h1>
+                    <p className="app-greeting-sub">
+                      Selecciona el día al que asistirás. Al <strong>elegir tu entrada</strong>, podrás{' '}
+                      <strong>visualizar el código QR</strong> que deberás presentar en el ingreso al evento.
+                    </p>
+                  </div>
 
-              <div className="tabs">
-                <button type="button" className={`tab-btn ${tab === 'proximos' ? 'active' : ''}`} onClick={() => setTab('proximos')}>
-                  Eventos Próximos
-                </button>
-                <button type="button" className={`tab-btn ${tab === 'misEntradas' ? 'active' : ''}`} onClick={() => setTab('misEntradas')}>
-                  Mis entradas
-                  {tickets.length > 0 && <span className="tab-badge">{tickets.length}</span>}
-                </button>
-              </div>
+                  <div className="tabs">
+                    <button type="button" className={`tab-btn ${tab === 'proximos' ? 'active' : ''}`} onClick={() => setTab('proximos')}>
+                      Eventos Próximos
+                    </button>
+                    <button type="button" className={`tab-btn ${tab === 'misEntradas' ? 'active' : ''}`} onClick={() => setTab('misEntradas')}>
+                      Mis entradas
+                      {tickets.length > 0 && <span className="tab-badge">{tickets.length}</span>}
+                    </button>
+                  </div>
 
-              {tab === 'proximos' && (
-                <div>
-                  {EVENTO.dias.map(dia => (
-                    <EventCard
-                      key={dia.id}
-                      dia={dia}
-                      ticket={ticketsPorDia(dia.id)}
-                      modo="proximo"
-                      onElegir={() => handleElegirDia(dia)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {tab === 'misEntradas' && (
-                <div>
-                  {EVENTO.dias
-                    .map(dia => ({ dia, ticket: ticketsPorDia(dia.id) }))
-                    .filter(x => x.ticket)
-                    .map(({ dia, ticket }) => (
-                      <EventCard
-                        key={dia.id}
-                        dia={dia}
-                        ticket={ticket}
-                        modo="entrada"
-                        onAbrir={() => setTicketModal({ dia, ticket })}
-                      />
-                    ))}
-                  {tickets.length === 0 && (
-                    <div className="empty-state" style={{ display: 'block' }}>
-                      Aún no has adquirido ninguna entrada.<br />Ve a "Eventos Próximos" para elegir tu día.
+                  {tab === 'proximos' && (
+                    <div>
+                      {EVENTO.dias.map(dia => (
+                        <EventCard
+                          key={dia.id}
+                          dia={dia}
+                          ticket={ticketsPorDia(dia.id)}
+                          modo="proximo"
+                          onElegir={() => handleElegirDia(dia)}
+                        />
+                      ))}
                     </div>
                   )}
-                </div>
+
+                  {tab === 'misEntradas' && (
+                    <div>
+                      {EVENTO.dias
+                        .map(dia => ({ dia, ticket: ticketsPorDia(dia.id) }))
+                        .filter(x => x.ticket)
+                        .map(({ dia, ticket }) => (
+                          <EventCard
+                            key={dia.id}
+                            dia={dia}
+                            ticket={ticket}
+                            modo="entrada"
+                            onAbrir={() => setTicketModal({ dia, ticket })}
+                          />
+                        ))}
+                      {tickets.length === 0 && (
+                        <div className="empty-state" style={{ display: 'block' }}>
+                          Aún no has adquirido ninguna entrada.<br />Ve a "Eventos Próximos" para elegir tu día.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
+
+              {(navActive === 1 || navActive === 2) && <SeccionNoDisponible />}
             </div>
 
             <div className="nav-wrapper">
@@ -249,6 +255,46 @@ export default function Ingreso() {
         </div>
       )}
     </>
+  );
+}
+
+function SeccionNoDisponible() {
+  return (
+    <div className="snd">
+      <img className="snd-logo" src={LOGO_APP} alt="Logo" />
+      <h2 className="snd-title">
+        <span className="snd-title-l1">SECCIÓN</span>
+        <span className="snd-title-l2">TEMPORALMENTE</span>
+        <span className="snd-title-l3">NO DISPONIBLE</span>
+      </h2>
+      <div className="snd-icon">
+        <IconEnConstruccion />
+      </div>
+      <p className="snd-text">
+        Esta sección se activará cuando<br /><strong>inicie {EVENTO.nombre}.</strong>
+      </p>
+      <p className="snd-text">
+        ¡Te esperamos para vivir<br /><strong>la experiencia completa!</strong>
+      </p>
+    </div>
+  );
+}
+
+function IconEnConstruccion() {
+  return (
+    <svg viewBox="0 0 64 64" width="72" height="72" fill="none">
+      <rect x="2" y="6" width="60" height="52" rx="6" fill="#fff" />
+      <circle cx="12" cy="15" r="2" fill="var(--brand-orange)" />
+      <circle cx="19" cy="15" r="2" fill="var(--brand-orange)" />
+      <circle cx="26" cy="15" r="2" fill="var(--brand-orange)" />
+      <rect x="36" y="13" width="20" height="4" rx="2" fill="rgba(0,0,0,.12)" />
+      <g transform="translate(0,4)">
+        <rect x="18" y="44" width="28" height="5" rx="2.5" fill="var(--brand-orange)" />
+        <path d="M29 44 L34.5 20 L39.5 20 L45 44 Z" fill="var(--brand-orange)" />
+        <rect x="26" y="30" width="12" height="4" fill="#fff" />
+        <rect x="24" y="38" width="16" height="4" fill="#fff" />
+      </g>
+    </svg>
   );
 }
 

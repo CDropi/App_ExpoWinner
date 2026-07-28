@@ -705,9 +705,21 @@ h1{
   cursor:pointer;
   transition:opacity .2s ease;
   -webkit-tap-highlight-color:transparent;
-  outline:none;
+  -webkit-appearance:none;
+  appearance:none;
+  outline:none !important;
+  box-shadow:none !important;
   user-select:none;
   -webkit-user-select:none;
+}
+.nav-item:hover,
+.nav-item:focus,
+.nav-item:focus-visible,
+.nav-item:active{
+  outline:none !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  transform:none !important;
 }
 .nav-item svg{width:20px;height:20px;}
 .nav-item.active{opacity:0;}

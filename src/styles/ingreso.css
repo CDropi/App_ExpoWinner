@@ -140,19 +140,21 @@ h1{
 /* ---- Tabs ---- */
 .tabs{
   display:flex;
-  gap:6px;
-  background:var(--bg-2);
-  border:1px solid rgba(255,255,255,.08);
-  padding:5px;
-  border-radius:14px;
+  gap:4px;
+  background:linear-gradient(180deg, rgba(201,106,58,.55), rgba(156,74,31,.55));
+  border: 1px solid rgb(228 228 228 / 20%);
+  border-radius:15px;
   margin-bottom:22px;
 }
 .tab-btn{
+  font-family: 'Montserrat';
+  font-weight: 400;
   flex:1;
   margin:0;
-  padding:11px 10px;
+  padding:15px 10px;
   background:transparent;
-  color:var(--muted);
+  border-radius:15px;
+  color:rgba(255,255,255,.85);
   font-size:13.5px;
   display:flex;
   align-items:center;
@@ -160,11 +162,22 @@ h1{
   gap:7px;
   transition:background .15s ease, color .15s ease;
 }
-.tab-btn:hover{background:rgba(255,255,255,.04);}
-.tab-btn.active{background:var(--paper);color:var(--ink);}
+.tab-btn:hover{background:rgba(255,255,255,.08);}
+.tab-btn:focus,.tab-btn:focus-visible{outline:none !important;box-shadow:none !important;}
+
+.tab-btn.active{
+  background:rgba(239,225,199,.55);
+  color:#5b2e12;
+  font-weight: 700;
+}
+
+.tab-btn.active:hover{
+  background: rgba(239, 225, 199, 0.7);
+}
+
 .tab-badge{
-  background:var(--gold);
-  color:#241a05;
+  background:white;
+  color:#ED6F2D;
   font-size:11px;
   font-weight:700;
   border-radius:999px;
@@ -474,6 +487,7 @@ h1{
   flex-direction:column;
   z-index:5;
 }
+
 .app-scroll{
   flex:1;
   min-height:0;
@@ -631,9 +645,10 @@ h1{
 
 .event-card-cta:hover{background:var(--brand-orange-deep);}
 .event-card-cta:disabled{opacity:.6;cursor:default;}
+
 .event-card-status{
   width:100%;
-  padding:10px 16px;
+  padding:5px 8px;
   border-radius:999px;
   text-align:center;
   font-family:'Montserrat';
@@ -645,8 +660,14 @@ h1{
   background:rgba(255,255,255,.06);
 }
 .event-card-status.clickable{cursor:pointer;}
-.event-card-status.valid{color:var(--green);}
-.event-card-status.used{color:var(--red);}
+.event-card-status.valid{background:var(--brand-orange);color:#fff;}
+.event-card-status.valid:hover{background:var(--brand-orange-deep);}
+
+.event-card-status.used{
+  background:rgb(196, 196, 196);
+  color:var(--muted);
+}
+
 .event-card-cta-error{
   color:var(--red);
   font-size:12px;

@@ -281,21 +281,7 @@ function SeccionNoDisponible() {
 }
 
 function IconEnConstruccion() {
-  return (
-    <svg viewBox="0 0 64 64" width="72" height="72" fill="none">
-      <rect x="2" y="6" width="60" height="52" rx="6" fill="#fff" />
-      <circle cx="12" cy="15" r="2" fill="var(--brand-orange)" />
-      <circle cx="19" cy="15" r="2" fill="var(--brand-orange)" />
-      <circle cx="26" cy="15" r="2" fill="var(--brand-orange)" />
-      <rect x="36" y="13" width="20" height="4" rx="2" fill="rgba(0,0,0,.12)" />
-      <g transform="translate(0,4)">
-        <rect x="18" y="44" width="28" height="5" rx="2.5" fill="var(--brand-orange)" />
-        <path d="M29 44 L34.5 20 L39.5 20 L45 44 Z" fill="var(--brand-orange)" />
-        <rect x="26" y="30" width="12" height="4" fill="#fff" />
-        <rect x="24" y="38" width="16" height="4" fill="#fff" />
-      </g>
-    </svg>
-  );
+  return <img src="/media/Icono_Construccion.svg" alt="" width="100" height="100" />;
 }
 
 function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {

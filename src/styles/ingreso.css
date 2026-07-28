@@ -539,17 +539,15 @@ h1{
 
 .event-card-tag{
   position:absolute;
-  top:56px;
+  top:60px;
   background:var(--brand-orange);
   color:#fff;
-  font-family:'Tusker';
-  font-weight:700;
+  font-family:'Montserrat';
   font-size:12px;
   letter-spacing:.04em;
   text-transform:uppercase;
   padding:3px 27px;
   border-radius: 6px 6px 0 0;
-  letter-spacing: 2px;
 }
 
 .event-card.ya-elegida .event-card-tag{
@@ -631,11 +629,10 @@ h1{
   padding:10px 16px;
   border-radius:999px;
   text-align:center;
-  font-family:'Tusker',sans-serif;
-  font-weight:700;
-  font-size:11.5px;
+  font-family:'Montserrat';
+  font-weight: 700;
+  font-size:10px;
   letter-spacing:.02em;
-  text-transform:uppercase;
   white-space:nowrap;
   color:var(--muted);
   background:rgba(255,255,255,.06);

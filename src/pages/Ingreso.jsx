@@ -298,14 +298,14 @@ function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {
             </button>
           )}
           {modo === 'proximo' && ticket && (
-            <div className="event-card-status">{ticket.checkedIn ? 'Ya ingresó' : 'Adquirida'}</div>
+            <div className="event-card-status">{ticket.checkedIn ? 'Ingreso registrado' : 'Adquirida'}</div>
           )}
           {modo === 'entrada' && (
             <div
               className={`event-card-status clickable ${ticket.checkedIn ? 'used' : 'valid'}`}
               onClick={onAbrir}
             >
-              {ticket.checkedIn ? 'Ya ingresó' : 'Ver mi QR'}
+              {ticket.checkedIn ? 'Ingreso registrado' : 'Ver mi QR'}
             </div>
           )}
         </div>

@@ -33,7 +33,10 @@ export default function Ingreso() {
   useEffect(() => {
     const el = navBarRef.current;
     if (!el) return;
-    const measure = () => setBarWidth(el.getBoundingClientRect().width);
+    const measure = () => {
+      const nuevo = Math.round(el.getBoundingClientRect().width);
+      setBarWidth(prev => (Math.abs(prev - nuevo) < 1 ? prev : nuevo));
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -212,7 +215,9 @@ export default function Ingreso() {
                     </div>
                   )}
                 </div>
-              )}              
+              )}
+
+              <div className="helper-note">Muestra el código QR del día correspondiente al personal en la entrada. No lo compartas: es único para tu número de celular.</div>
             </div>
 
             <div className="nav-wrapper">

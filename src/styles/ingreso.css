@@ -425,6 +425,14 @@ h1{
   letter-spacing:.14em;
   color:var(--muted);
 }
+.helper-note{
+  max-width:380px;
+  text-align:center;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-top:22px;
+  line-height:1.5;
+}
 
 .test-banner{width:100%;max-width:380px;margin-bottom:18px;}
 .test-ids{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
@@ -582,7 +590,6 @@ h1{
 }
 .event-card-venue{
   font-size:11.5px;
-  font-weight: 700;
   color:var(--brand-orange);
   margin-top:2px;
   white-space:nowrap;
@@ -599,10 +606,11 @@ h1{
   background:var(--brand-orange);
   color:#fff;
   font-family:'Montserrat';
-  font-weight:400;
+  font-weight:700;
   font-size:10px;
   letter-spacing:0;
-  padding:6px 8px;
+  text-transform:uppercase;
+  padding:10px 8px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;

@@ -8,7 +8,7 @@
 //   - "tickets": una entrada por persona por día elegido (se crea
 //     cuando la persona elige ese día en Ingreso)
 // ============================================================
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getFirestore, doc, getDoc, getDocs, collection, query, where,
   writeBatch, runTransaction, serverTimestamp, increment
@@ -23,7 +23,7 @@ const LS_STATS = "mock_stats_v2";
 let _db = null;
 function getDb() {
   if (_db) return _db;
-  const app = initializeApp(firebaseConfig);
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   _db = getFirestore(app);
   return _db;
 }

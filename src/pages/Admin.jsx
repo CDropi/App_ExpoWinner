@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { MODO_PRUEBA } from '../config.js';
 import { cargarPersonas, reiniciarDatosDePrueba, obtenerTodosLosTickets } from '../dataLayer.js';
+import AuthGate from '../AuthGate.jsx';
 import '../styles/admin.css';
 
 function parseCSV(raw) {
@@ -27,6 +28,14 @@ function descargarCSV(filename, header, body) {
 }
 
 export default function Admin() {
+  return (
+    <AuthGate titulo="Panel administrativo">
+      {(usuario, cerrarSesion) => <AdminContent usuario={usuario} onLogout={cerrarSesion} />}
+    </AuthGate>
+  );
+}
+
+function AdminContent({ usuario, onLogout }) {
   const [csvText, setCsvText] = useState('');
   const [preview, setPreview] = useState('');
   const [subiendo, setSubiendo] = useState(false);
@@ -127,7 +136,7 @@ export default function Admin() {
         </div>
       )}
 
-      <div className="eyebrow">Panel interno</div>
+      <div className="eyebrow">Panel interno{usuario?.email ? ` · ${usuario.email}` : ''}</div>
       <h1>Carga de personas</h1>
       <p className="sub">
         Pega o sube un CSV con las columnas <code>telefono,nombre,correo</code> (una fila por persona, sin
@@ -171,6 +180,8 @@ export default function Admin() {
         </button>
         {exportStatus.text && <div className={`status ${exportStatus.kind}`}>{exportStatus.text}</div>}
       </div>
+
+      <button className="admin-logout" onClick={onLogout}>Cerrar sesión</button>
     </div>
   );
 }

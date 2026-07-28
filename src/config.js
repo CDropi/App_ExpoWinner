@@ -55,4 +55,5 @@ export const URL_REGISTRO_LANDING = "https://tu-landing.com/registro";
 
 // 3) PINs válidos para el personal de puerta (agrega los que necesites)
 //    Cambia esto antes de publicar. Es una barrera básica, no una autenticación real.
+// [Ya no se usa] El PIN se reemplazó por login real con correo/contraseña (ver auth.js / AuthGate.jsx).
 export const STAFF_PINS = ["4821", "7350", "9012"];

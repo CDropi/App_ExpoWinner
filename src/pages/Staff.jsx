@@ -1,16 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { STAFF_PINS, MODO_PRUEBA } from '../config.js';
+import { MODO_PRUEBA } from '../config.js';
 import { procesarCheckin, obtenerContador } from '../dataLayer.js';
 import { useEsMobil } from '../useEsMobil.js';
 import SoloMobil from '../SoloMobil.jsx';
+import AuthGate from '../AuthGate.jsx';
 import '../styles/staff.css';
 
 export default function Staff() {
   const esMobil = useEsMobil();
-  const [autorizado, setAutorizado] = useState(false);
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState(false);
+  if (!esMobil) return <SoloMobil />;
+
+  return (
+    <AuthGate titulo="Personal autorizado">
+      {(usuario, cerrarSesion) => <ScannerView usuario={usuario} onLogout={cerrarSesion} />}
+    </AuthGate>
+  );
+}
+
+function ScannerView({ usuario, onLogout }) {
   const [counter, setCounter] = useState(0);
   const [flashKind, setFlashKind] = useState(''); // '', 'ok', 'bad'
   const [resultado, setResultado] = useState(null); // { kind, titulo, subtitulo, hint }
@@ -22,34 +30,37 @@ export default function Staff() {
   const readerErrorRef = useRef(false);
 
   useEffect(() => {
-    if (!autorizado) return;
     obtenerContador().then(setCounter).catch(() => {});
 
     const qr = new Html5Qrcode('reader');
     qrRef.current = qr;
+    let escaneando = false;
+    let desmontado = false;
+
     qr.start(
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 240, height: 240 } },
       (decodedText) => procesarCodigo(decodedText.trim()),
       () => {}
-    ).catch(() => { readerErrorRef.current = true; });
+    ).then(() => {
+      escaneando = true;
+      // Si ya nos desmontamos mientras la cámara arrancaba, detenerla ahora.
+      if (desmontado) qr.stop().catch(() => {});
+    }).catch(() => { readerErrorRef.current = true; });
 
     return () => {
-      qr.stop().catch(() => {});
+      desmontado = true;
+      // Si la cámara ya estaba corriendo, la detenemos de inmediato. Si
+      // todavía estaba arrancando, el .then() de arriba se encarga.
+      if (!escaneando) return;
+      try {
+        qr.stop().catch(() => {});
+      } catch (e) {
+        // no-op: puede pasar en desmontajes muy rápidos (ej. modo desarrollo de React)
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autorizado]);
-
-  if (!esMobil) return <SoloMobil />;
-
-  function entrar() {
-    if (STAFF_PINS.includes(pin.trim())) {
-      setAutorizado(true);
-      setPinError(false);
-    } else {
-      setPinError(true);
-    }
-  }
+  }, []);
 
   function flash(kind) {
     setFlashKind(kind);
@@ -86,59 +97,44 @@ export default function Staff() {
     <>
       <div id="flash" className={flashKind ? `show ${flashKind}` : ''} />
 
-      {!autorizado && (
-        <div id="gate">
-          <div className="eyebrow">Personal autorizado</div>
-          <h1>Ingresa tu PIN</h1>
-          <input
-            maxLength={4}
-            inputMode="numeric"
-            placeholder="••••"
-            value={pin}
-            onChange={e => setPin(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') entrar(); }}
-          />
-          <button onClick={entrar}>Entrar</button>
-          {pinError && <div className="err" style={{ display: 'block' }}>PIN incorrecto.</div>}
-        </div>
-      )}
-
-      {autorizado && (
-        <div id="scannerView" style={{ display: 'block' }}>
-          {MODO_PRUEBA && (
-            <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
-          )}
-          <div className="topbar">
+      <div id="scannerView" style={{ display: 'block' }}>
+        {MODO_PRUEBA && (
+          <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
+        )}
+        <div className="topbar">
+          <div>
             <div className="eyebrow">Control de ingreso</div>
-            <div className="counter">{counter} ingresos</div>
+            {usuario?.email && <div className="staff-email">{usuario.email}</div>}
           </div>
-          <div id="reader" ref={readerRef} />
-          <div id="resultPanel" className={resultado?.kind || ''}>
-            {!resultado && <div className="rname">Apunta la cámara al código QR de la entrada</div>}
-            {resultado && (
-              <>
-                <div className="rname">{resultado.titulo}</div>
-                <div className={`rstatus ${resultado.kind}`}>{resultado.subtitulo}</div>
-                {resultado.hint && <div className="rhint">{resultado.hint}</div>}
-              </>
-            )}
-          </div>
-          {MODO_PRUEBA && (
-            <div id="manualTest" style={{ display: 'block' }}>
-              <div className="manual-label">Prueba manual (sin cámara)</div>
-              <div className="manual-row">
-                <input
-                  placeholder="Pega un ticketCode, ej. XJ4K9QAL2P"
-                  value={manualCode}
-                  onChange={e => setManualCode(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) procesarCodigo(manualCode.trim()); }}
-                />
-                <button onClick={() => { if (manualCode.trim()) procesarCodigo(manualCode.trim()); }}>Simular</button>
-              </div>
-            </div>
+          <div className="counter">{counter} ingresos</div>
+        </div>
+        <div id="reader" ref={readerRef} />
+        <div id="resultPanel" className={resultado?.kind || ''}>
+          {!resultado && <div className="rname">Apunta la cámara al código QR de la entrada</div>}
+          {resultado && (
+            <>
+              <div className="rname">{resultado.titulo}</div>
+              <div className={`rstatus ${resultado.kind}`}>{resultado.subtitulo}</div>
+              {resultado.hint && <div className="rhint">{resultado.hint}</div>}
+            </>
           )}
         </div>
-      )}
+        {MODO_PRUEBA && (
+          <div id="manualTest" style={{ display: 'block' }}>
+            <div className="manual-label">Prueba manual (sin cámara)</div>
+            <div className="manual-row">
+              <input
+                placeholder="Pega un ticketCode, ej. XJ4K9QAL2P"
+                value={manualCode}
+                onChange={e => setManualCode(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) procesarCodigo(manualCode.trim()); }}
+              />
+              <button onClick={() => { if (manualCode.trim()) procesarCodigo(manualCode.trim()); }}>Simular</button>
+            </div>
+          </div>
+        )}
+        <button className="staff-logout" onClick={onLogout}>Cerrar sesión</button>
+      </div>
     </>
   );
 }

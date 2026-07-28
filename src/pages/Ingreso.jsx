@@ -281,7 +281,7 @@ function SeccionNoDisponible() {
 }
 
 function IconEnConstruccion() {
-  return <img src="/media/Icono_Construccion.svg" alt="" width="100" height="100" />;
+  return <img src="/media/Icono_Construccion.svg" alt="" width="120" height="120" />;
 }
 
 function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {

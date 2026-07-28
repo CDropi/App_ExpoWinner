@@ -1,0 +1,105 @@
+/* ============================================================
+   base.css — variables de diseño y componentes compartidos entre
+   ingreso.html, staff.html y admin.html.
+   ============================================================ */
+
+/* ---- Tipografía personalizada: Tusker (títulos) ----
+   Solo se usa el peso bold (TuskerGrotesk-4700Bold), que es el que
+   aplican los títulos en toda la app. Montserrat se carga aparte
+   desde Google Fonts en cada .html. */
+@font-face{
+  font-family:'Tusker';
+  src:
+    url('/fonts/TuskerGrotesk-4700Bold.woff2') format('woff2'),
+    url('/fonts/TuskerGrotesk-4700Bold.ttf') format('truetype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+/* ---- Montserrat auto-hospedada (Light y Bold) ----
+   El resto de los pesos (400/500/600) se siguen cargando desde
+   Google Fonts en cada .html; estos dos pesos los reemplaza tu
+   propia fuente. Coloca los archivos en fonts/ con estos nombres. */
+@font-face{
+  font-family:'Montserrat';
+  src:
+    url('/fonts/Montserrat-Light.woff2') format('woff2'),
+    url('/fonts/Montserrat-Light.ttf') format('truetype');
+  font-weight:300;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Montserrat';
+  src:
+    url('/fonts/Montserrat-Bold.woff2') format('woff2'),
+    url('/fonts/Montserrat-Bold.ttf') format('truetype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+:root{
+  --bg:#0B0F1A;
+  --bg-2:#141a2b;
+  --paper:#FBF9F3;
+  --gold:#E8B23D;
+  --gold-deep:#B8862A;
+  --ink:#10131C;
+  --muted:#7C8398;
+  --green:#2FAE5C;
+  --red:#E0473E;
+  --radius:22px;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;overflow-x:hidden;}
+body{
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  color:var(--paper);
+  background:var(--bg);
+}
+
+/* ---- Botón base ---- */
+button{
+  border:none;
+  border-radius:12px;
+  background:var(--gold);
+  color:#241a05;
+  font-weight:700;
+  font-family:'Tusker',sans-serif;
+  font-size:14px;
+  cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+}
+button:hover{background:#f0bd4f;}
+button:active{transform:scale(.98);}
+button:disabled{opacity:.5;cursor:default;}
+
+/* ---- Spinner de carga ---- */
+.spinner{
+  width:18px;height:18px;
+  border:2px solid rgba(36,26,5,.3);
+  border-top-color:#241a05;
+  border-radius:50%;
+  display:inline-block;
+  animation:spin .7s linear infinite;
+  vertical-align:middle;
+  margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---- Aviso de modo prueba ---- */
+.test-banner{
+  background:rgba(232,178,61,.12);
+  border:1px solid rgba(232,178,61,.35);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  letter-spacing:.04em;
+  padding:10px 14px;
+  border-radius:10px;
+  text-align:center;
+}

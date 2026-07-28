@@ -5,7 +5,6 @@ import {
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia } from '../dataLayer.js';
-import { buildNotchPath } from '../notchPath.js';
 import '../styles/ingreso.css';
 
 const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
@@ -27,25 +26,7 @@ export default function Ingreso() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [ticketModal, setTicketModal] = useState(null); // { dia, ticket } | null
   const [navActive, setNavActive] = useState(0);
-  const [barWidth, setBarWidth] = useState(390);
-  const navBarRef = useRef(null);
-
-  useEffect(() => {
-    const el = navBarRef.current;
-    if (!el) return;
-    const measure = () => {
-      const nuevo = Math.round(el.getBoundingClientRect().width);
-      setBarWidth(prev => (Math.abs(prev - nuevo) < 1 ? prev : nuevo));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  const BAR_HEIGHT = 64;
-  const slotCenterX = (barWidth / 3) * (navActive + 0.5);
-  const notchPath = buildNotchPath({ barWidth, barHeight: BAR_HEIGHT, cx: slotCenterX, R: 32, r: 16 });
+  const navHoleX = `${navActive * 50}%`;
 
   const videoRef = useRef(null);
 
@@ -223,8 +204,7 @@ export default function Ingreso() {
             <div className="nav-wrapper">
               <nav
                 className="bottom-nav"
-                ref={navBarRef}
-                style={{ clipPath: `path("${notchPath}")` }}
+                style={{ '--nav-hole-x': navHoleX }}
               >
                 <div className="nav-items-row">
                   {NAV_ITEMS.map((item, i) => (
@@ -240,7 +220,7 @@ export default function Ingreso() {
                   ))}
                 </div>
               </nav>
-              <div className="nav-indicator" style={{ transform: `translateX(${slotCenterX}px)` }}>
+              <div className="nav-indicator" style={{ transform: `translateX(${navActive * 100}%)` }}>
                 <div className="nav-indicator-circle">{NAV_ITEMS[navActive].icon}</div>
               </div>
             </div>

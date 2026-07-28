@@ -5,7 +5,7 @@
 // Geometría verificada por muestreo de píxeles antes de integrarla aquí.
 function lerp(a, b, t) { return a + (b - a) * t; }
 
-export function buildNotchPath({ barWidth, barHeight, cx, R = 32, r = 16, steps = 24 }) {
+export function buildNotchPath({ barWidth, barHeight, cx, R = 32, r = 16, steps = 8 }) {
   const dx = Math.sqrt(R * R + 2 * R * r);
   const mainCenter = { x: cx, y: 0 };
   const leftFilletCenter = { x: cx - dx, y: r };

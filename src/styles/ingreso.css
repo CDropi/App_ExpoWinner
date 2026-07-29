@@ -188,14 +188,14 @@ h1{
 .tab-panel.active{display:block;}
 
 .empty-state{
-  text-align:center;
-  color:var(--muted);
-  font-size:13.5px;
-  line-height:1.6;
-  padding:36px 20px;
-  background:var(--bg-2);
-  border:1px dashed rgba(255,255,255,.12);
-  border-radius:var(--radius);
+  text-align: center;
+  color: #bbbbbb;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 36px 20px;
+  background: rgb(39 39 39 / 35%);
+  border: 1px dashed rgba(255, 255, 255, .3);
+  border-radius: 15px;
 }
 
 /* ---- Pantalla temporal: sección no disponible (Perfil / Mapa) ---- */
@@ -425,6 +425,7 @@ h1{
   display:flex;
   gap:16px;
   align-items:center;
+  justify-content: center;
   padding-top:14px;
   border-top:1px dashed rgba(16,19,28,.15);
 }

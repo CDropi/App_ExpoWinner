@@ -13,8 +13,37 @@ import {
   getFirestore, doc, getDoc, getDocs, collection, query, where,
   writeBatch, runTransaction, serverTimestamp, increment
 } from "firebase/firestore";
-import { firebaseConfig, MODO_PRUEBA } from "./config.js";
+import { firebaseConfig, MODO_PRUEBA, EVENTO, FECHA_SIMULADA_HOY } from "./config.js";
 import { personasIniciales, ticketsIniciales } from "./mockData.js";
+
+const MESES = { ENE:0, FEB:1, MAR:2, ABR:3, MAY:4, JUN:5, JUL:6, AGO:7, SEP:8, OCT:9, NOV:10, DIC:11 };
+
+// Convierte "25 JUL" + el año del evento en una fecha real, para poder
+// compararla contra el día de hoy y así saber si un ticket corresponde
+// al día correcto del evento (y no a otro día que aún no ha llegado, o
+// que ya pasó).
+function fechaDelDia(diaId) {
+  const dia = EVENTO.dias.find(d => d.id === diaId);
+  if (!dia) return null;
+  const [numeroStr, mesStr] = dia.fecha.split(" ");
+  const mes = MESES[mesStr.toUpperCase()];
+  if (mes === undefined) return null;
+  return new Date(Number(EVENTO.anio), mes, Number(numeroStr));
+}
+
+function esMismoDiaCalendario(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function hoy() {
+  return FECHA_SIMULADA_HOY ? new Date(`${FECHA_SIMULADA_HOY}T12:00:00`) : new Date();
+}
+
+function diaCoincideConHoy(diaId) {
+  const fecha = fechaDelDia(diaId);
+  if (!fecha) return true; // si no se pudo determinar la fecha, no bloqueamos por esto
+  return esMismoDiaCalendario(fecha, hoy());
+}
 
 const LS_PERSONAS = "mock_personas_v2";
 const LS_TICKETS = "mock_tickets_v2";
@@ -164,6 +193,7 @@ export async function procesarCheckin(ticketCode) {
     if (!snap.exists()) return { ok: false, reason: "not_found" };
     const data = snap.data();
     if (data.checkedIn) return { ok: false, reason: "already_used", data };
+    if (!diaCoincideConHoy(data.dia)) return { ok: false, reason: "dia_incorrecto", data };
     tx.update(ref, { checkedIn: true, checkedInAt: serverTimestamp() });
     const statsRef = doc(db, "stats", "checkins");
     tx.set(statsRef, { count: increment(1), [`count_dia${data.dia}`]: increment(1) }, { merge: true });

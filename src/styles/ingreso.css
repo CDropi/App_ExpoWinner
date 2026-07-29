@@ -396,7 +396,8 @@ h1{
 .t-brand .name{
   font-family:'Tusker',sans-serif;
   font-weight:700;
-  font-size:20px;
+  color:#ED6F2D;
+  font-size:25px;
   line-height:1.15;
   max-width:220px;
 }
@@ -423,8 +424,7 @@ h1{
   font-family:'Tusker',sans-serif;
   font-weight:700;
   font-size:32px;
-  color:var(--gold-deep);
-  line-height:1;
+  color:#ED6F2D;
 }
 .t-datebox .date-sub{
   font-size:12px;
@@ -706,6 +706,7 @@ h1{
 .event-card-status.used{
   background:rgb(196, 196, 196);
   color:var(--muted);
+  cursor:not-allowed;
 }
 
 .event-card-cta-error{

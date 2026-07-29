@@ -27,8 +27,8 @@ export const EVENTO = {
   lugar: "Ágora",
   anio: "2026",
   dias: [
-    { id: 1, etiqueta: "Día 1", fecha: "25 JUL", hora: "18:00", imagen: "/media/Banner1.jpg" },
-    { id: 2, etiqueta: "Día 2", fecha: "26 JUL", hora: "18:00", imagen: "/media/Banner1.jpg" }
+    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "18:00", imagen: "/media/Banner1.jpg" },
+    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "18:00", imagen: "/media/Banner1.jpg" }
   ]
 };
 
@@ -57,3 +57,10 @@ export const URL_REGISTRO_LANDING = "https://tu-landing.com/registro";
 //    Cambia esto antes de publicar. Es una barrera básica, no una autenticación real.
 // [Ya no se usa] El PIN se reemplazó por login real con correo/contraseña (ver auth.js / AuthGate.jsx).
 export const STAFF_PINS = ["4821", "7350", "9012"];
+
+// 5) Fecha simulada para PROBAR la validación de "día correcto" del check-in
+//    sin esperar a la fecha real ni tocar el reloj del celular. Ejemplo:
+//    export const FECHA_SIMULADA_HOY = "2026-07-25"; // hace que la app crea que hoy es Día 1
+//    Déjalo en null para usar la fecha real del dispositivo (esto es lo que
+//    debe quedar antes del evento real).
+export const FECHA_SIMULADA_HOY = null;

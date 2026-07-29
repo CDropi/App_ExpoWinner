@@ -57,13 +57,13 @@ export default function Ingreso() {
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === 'Escape') {
-        setTicketModal(null);
+        cerrarTicketModal();
         setPromoOpen(false);
       }
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [persona]);
 
   if (!esMobil) return <SoloMobil />;
 
@@ -98,6 +98,48 @@ export default function Ingreso() {
     const nuevoTicket = await elegirDia(persona.id, persona.nombre, dia.id);
     setTickets(prev => [...prev, nuevoTicket]);
     setTab('misEntradas');
+  }
+
+  // Vuelve a consultar Firestore antes de mostrar "Mis entradas", para que
+  // se refleje de inmediato si el staff ya escaneó alguna entrada (los
+  // tickets solo se cargaban una vez, al iniciar sesión, y no se
+  // actualizaban solos).
+  async function abrirMisEntradas() {
+    setTab('misEntradas');
+    try {
+      const misTickets = await obtenerTicketsDePersona(persona.id);
+      setTickets(misTickets);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Antes de abrir el modal con el QR, confirma el estado más reciente del
+  // ticket (por si el staff lo escaneó justo antes de que la persona lo tocara).
+  async function abrirTicket(dia, ticketPrevio) {
+    try {
+      const misTickets = await obtenerTicketsDePersona(persona.id);
+      setTickets(misTickets);
+      const fresco = misTickets.find(t => t.dia === dia.id) || ticketPrevio;
+      setTicketModal({ dia, ticket: fresco });
+    } catch (err) {
+      console.error(err);
+      setTicketModal({ dia, ticket: ticketPrevio });
+    }
+  }
+
+  // Cierra el modal del ticket y de paso refresca los tickets — así, si el
+  // staff escaneó la entrada mientras la persona tenía el QR abierto, al
+  // cerrarlo ya ve el estado correcto sin tener que salir de la pestaña.
+  async function cerrarTicketModal() {
+    setTicketModal(null);
+    if (!persona) return;
+    try {
+      const misTickets = await obtenerTicketsDePersona(persona.id);
+      setTickets(misTickets);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   const ticketsPorDia = (diaId) => tickets.find(t => t.dia === diaId);
@@ -163,9 +205,11 @@ export default function Ingreso() {
                     <button type="button" className={`tab-btn ${tab === 'proximos' ? 'active' : ''}`} onClick={() => setTab('proximos')}>
                       Eventos Próximos
                     </button>
-                    <button type="button" className={`tab-btn ${tab === 'misEntradas' ? 'active' : ''}`} onClick={() => setTab('misEntradas')}>
+                    <button type="button" className={`tab-btn ${tab === 'misEntradas' ? 'active' : ''}`} onClick={abrirMisEntradas}>
                       Mis entradas
-                      {tickets.length > 0 && <span className="tab-badge">{tickets.length}</span>}
+                      {tickets.filter(t => !t.checkedIn).length > 0 && (
+                        <span className="tab-badge">{tickets.filter(t => !t.checkedIn).length}</span>
+                      )}
                     </button>
                   </div>
 
@@ -194,7 +238,7 @@ export default function Ingreso() {
                             dia={dia}
                             ticket={ticket}
                             modo="entrada"
-                            onAbrir={() => setTicketModal({ dia, ticket })}
+                            onAbrir={() => abrirTicket(dia, ticket)}
                           />
                         ))}
                       {tickets.length === 0 && (
@@ -238,9 +282,9 @@ export default function Ingreso() {
       </div>
 
       {ticketModal && (
-        <div className="ticket-modal open" onClick={e => { if (e.target === e.currentTarget) setTicketModal(null); }}>
+        <div className="ticket-modal open" onClick={e => { if (e.target === e.currentTarget) cerrarTicketModal(); }}>
           <div className="ticket-modal-inner">
-            <button type="button" className="ticket-modal-close" onClick={() => setTicketModal(null)}>✕</button>
+            <button type="button" className="ticket-modal-close" onClick={cerrarTicketModal}>✕</button>
             <TicketCompleto dia={ticketModal.dia} ticket={ticketModal.ticket} nombre={persona?.nombre} />
           </div>
         </div>
@@ -281,7 +325,7 @@ function SeccionNoDisponible() {
 }
 
 function IconEnConstruccion() {
-  return <img src="/media/Icono_Construccion.svg" alt="" width="120" height="120" />;
+  return <img src="/media/Icono_Construccion.svg" alt="" width="100" height="100" />;
 }
 
 function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {
@@ -339,8 +383,8 @@ function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {
           )}
           {modo === 'entrada' && (
             <div
-              className={`event-card-status clickable ${ticket.checkedIn ? 'used' : 'valid'}`}
-              onClick={onAbrir}
+              className={`event-card-status ${ticket.checkedIn ? 'used' : 'valid clickable'}`}
+              onClick={ticket.checkedIn ? undefined : onAbrir}
             >
               {ticket.checkedIn ? 'Ingreso registrado' : 'Ver mi QR'}
             </div>

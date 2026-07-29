@@ -820,7 +820,7 @@ h1{
   background:transparent !important;
   transform:none !important;
 }
-.nav-item svg{width:20px;height:20px;}
+.nav-item img{width:20px;height:20px;}
 .nav-item.active{opacity:0;}
 
 /* El ícono activo se desliza en tiempo real con transform (nativo,
@@ -846,6 +846,6 @@ h1{
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 8px 16px -6px rgba(0,0,0,.5);
 }
-.nav-indicator-circle svg{width:25px;height:25px;}
+.nav-indicator-circle img{width:25px;height:25px;}
 
 

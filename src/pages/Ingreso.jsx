@@ -12,9 +12,9 @@ import '../styles/ingreso.css';
 const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
 
 const NAV_ITEMS = [
-  { key: 'tickets', label: 'Tickets', icon: <IconTicket /> },
-  { key: 'perfil', label: 'Perfil', icon: <IconUser /> },
-  { key: 'mapa', label: 'Mapa', icon: <IconMap /> },
+  { key: 'tickets', label: 'Tickets', icon: '/media/Tickets.svg', iconActivo: '/media/Tickets_2.svg' },
+  { key: 'perfil', label: 'Perfil', icon: '/media/Perfil.svg', iconActivo: '/media/Perfil_2.svg' },
+  { key: 'mapa', label: 'Mapa', icon: '/media/Mapa.svg', iconActivo: '/media/Mapa_2.svg' },
 ];
 
 export default function Ingreso() {
@@ -268,13 +268,15 @@ export default function Ingreso() {
                       aria-label={item.label}
                       onClick={() => setNavActive(i)}
                     >
-                      {item.icon}
+                      <img src={item.icon} alt="" width={24} height={24} />
                     </button>
                   ))}
                 </div>
               </nav>
               <div className="nav-indicator" style={{ transform: `translateX(${navActive * 100}%)` }}>
-                <div className="nav-indicator-circle">{NAV_ITEMS[navActive].icon}</div>
+                <div className="nav-indicator-circle">
+                  <img src={NAV_ITEMS[navActive].iconActivo} alt="" width={26} height={26} />
+                </div>
               </div>
             </div>
           </div>
@@ -387,31 +389,6 @@ function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {
 
       {error && <div className="event-card-cta-error">{error}</div>}
     </div>
-  );
-}
-
-function IconTicket() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z" />
-      <path d="M13 5v14" strokeDasharray="2 3" />
-    </svg>
-  );
-}
-function IconUser() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
-    </svg>
-  );
-}
-function IconMap() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z" />
-      <circle cx="12" cy="10" r="2.5" />
-    </svg>
   );
 }
 

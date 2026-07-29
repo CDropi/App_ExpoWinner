@@ -469,6 +469,7 @@ h1{
   text-align:center;
 }
 .attendee-name{
+  max-width: 33%;
   font-family:'Tusker',sans-serif;
   font-weight:700;
   font-size:17px;
@@ -481,11 +482,28 @@ h1{
   border:1px solid rgba(16,19,28,.08);
 }
 .ticket-code{
-  margin-top:14px;
-  font-family:'JetBrains Mono',monospace;
-  font-size:13px;
-  letter-spacing:.14em;
-  color:var(--muted);
+  margin-top: 10px;
+  font-family: 'Montserrat';
+  font-size: 13px;
+  letter-spacing: .2em;
+  color: #ffffff;
+  background-color: #ED6F2D;
+  padding: 3px 40px;
+  border-radius: 5px;
+}
+
+.InfoTicket {
+  max-width: 70%;
+  text-align: justify;
+}
+
+.InfoTicket p {
+  font-family: 'Montserrat';
+  font-size: 12px;
+}
+
+.InfoTicket strong {
+  font-weight: 700;
 }
 
 .test-banner{width:100%;max-width:380px;margin-bottom:18px;}

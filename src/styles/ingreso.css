@@ -5,6 +5,7 @@
 
 body{
   min-height:100vh;
+  min-height:100dvh;
   background:
     radial-gradient(1200px 600px at 50% -10%, #1c2440 0%, transparent 60%),
     var(--bg);
@@ -444,6 +445,7 @@ h1{
   width:100%;
   max-width:380px;
   max-height:70vh;
+  max-height:70dvh;
   object-fit:contain;
   border-radius:22px;
 }
@@ -498,6 +500,11 @@ h1{
   letter-spacing: 1px;
   font-size:24px;
   margin:0 0 10px;
+}
+
+/* ---- Mismo resguardo que en base.css para celulares muy angostos ---- */
+@media (max-width:380px){
+  .app-greeting{font-size:21px;}
 }
 
 .app-greeting-sub{
@@ -661,6 +668,8 @@ h1{
 .nav-wrapper{
   position:relative;
   flex:0 0 auto;
+  background:#000;
+  padding-bottom:env(safe-area-inset-bottom);
 }
 @property --nav-hole-x{
   syntax:'<percentage>';

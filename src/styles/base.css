@@ -107,6 +107,7 @@ button:disabled{opacity:.5;cursor:default;}
 /* ---- Pantalla de bloqueo: solo se puede usar desde celular ---- */
 .solo-mobil{
   min-height:100vh;
+  min-height:100dvh;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -174,6 +175,12 @@ button:disabled{opacity:.5;cursor:default;}
   letter-spacing:.04em;
   text-transform:uppercase;
   margin: 0;
+}
+
+/* ---- Ajustes para celulares muy angostos (~360px, comunes en Android
+   de gama baja/media) — evita que los títulos grandes se desborden ---- */
+@media (max-width:380px){
+  .login-title{font-size:42px;}
 }
 
 .login-logo{
@@ -303,6 +310,7 @@ button:disabled{opacity:.5;cursor:default;}
 
 .auth-gate-loading{
   min-height:100vh;
+  min-height:100dvh;
   display:flex;
   align-items:center;
   justify-content:center;

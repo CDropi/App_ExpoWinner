@@ -85,7 +85,8 @@ export default function Ingreso() {
       setPersona(personaEncontrada);
       setTickets(misTickets);
       setTab('proximos');
-      setPromoOpen(true);
+      // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
+      // setPromoOpen(true);
     } catch (err) {
       console.error(err);
       setErrorHtml('Ocurrió un error al buscar tu registro. Intenta de nuevo.');
@@ -292,8 +293,6 @@ export default function Ingreso() {
         </div>
       )}
 
-      {/* SECCIÓN COMENTADA: Modal promocional (popup) después del inicio de sesión */}
-      {/* 
       {promoOpen && (
         <div className="promo-modal open" onClick={e => { if (e.target === e.currentTarget) setPromoOpen(false); }}>
           <div className="promo-modal-inner">
@@ -301,9 +300,7 @@ export default function Ingreso() {
             <img src={IMAGEN_POPUP_PROMO} alt="Promoción" />
           </div>
         </div>
-      )} 
-      */}
-
+      )}
     </>
   );
 }

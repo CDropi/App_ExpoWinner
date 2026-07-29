@@ -12,7 +12,11 @@ export default function Staff() {
   if (!esMobil) return <SoloMobil />;
 
   return (
-    <AuthGate titulo="Personal autorizado">
+    <AuthGate
+      contexto="Staff"
+      descripcion="Valida el ingreso de los asistentes."
+      footerDestino="acceder al sistema de escaneo."
+    >
       {(usuario, cerrarSesion) => <ScannerView usuario={usuario} onLogout={cerrarSesion} />}
     </AuthGate>
   );

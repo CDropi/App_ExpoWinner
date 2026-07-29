@@ -29,7 +29,11 @@ function descargarCSV(filename, header, body) {
 
 export default function Admin() {
   return (
-    <AuthGate titulo="Panel administrativo">
+    <AuthGate
+      contexto="Equipo Administrativo"
+      descripcion="Carga y gestiona la información del evento."
+      footerDestino="acceder al panel administrativo."
+    >
       {(usuario, cerrarSesion) => <AdminContent usuario={usuario} onLogout={cerrarSesion} />}
     </AuthGate>
   );

@@ -50,6 +50,9 @@ export const LOGO_LOGIN = "/media/Logo_ExpoWinner.png";
 // 2.5.1) Logo que aparece en la pantalla de "Mis entradas" / eventos (puede ser distinto al del login).
 export const LOGO_APP = "/media/Logo_ExpoWinner_Horizontal.png";
 
+// Logo que aparece en la pantalla de Login del Staff
+export const LOGO_LOGIN_STAFF = "/media/Logo_ExpoWinner_Horizontal.png";
+
 // 2.6) URL de tu landing donde las personas se registran (usada en "Regístrate aquí").
 export const URL_REGISTRO_LANDING = "https://tu-landing.com/registro";
 

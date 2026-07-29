@@ -108,27 +108,31 @@ button:disabled{opacity:.5;cursor:default;}
 .solo-mobil{
   min-height:100vh;
   display:flex;
-  flex-direction:column;
   align-items:center;
   justify-content:center;
   text-align:center;
-  padding:40px 32px;
-  background:var(--bg);
+  gap: 100px;
 }
-.solo-mobil-icon{font-size:48px;margin-bottom:20px;}
+
+.solo-mobil-info {
+  width: 30%;
+  padding: 0 50px;
+}
+
 .solo-mobil-title{
   font-family:'Tusker',sans-serif;
   font-weight:700;
-  font-size:22px;
-  margin:0 0 12px;
-  max-width:340px;
+  font-size:70px;
+  margin:0 0 50px;
+  line-height: 85px;
 }
+
 .solo-mobil-text{
-  font-size:14px;
-  color:var(--muted);
+  font-size:16px;
+  color:white;
   line-height:1.6;
-  max-width:320px;
   margin:0;
+  text-align: justify;
 }
 
 /* ---- AuthGate: login por correo/contraseña (Staff y Admin) ---- */

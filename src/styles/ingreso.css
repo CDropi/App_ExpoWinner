@@ -209,9 +209,9 @@ h1{
 .snd-logo{width:80px;height:80px;object-fit:contain;margin-bottom:15px;}
 
 .snd-title{
-  text-align:right;
+  text-align:center;
   margin:0 0 26px;
-  width:80%;
+  width:90%;
 }
 
 .snd-title-l1,
@@ -222,19 +222,27 @@ h1{
   line-height:1.05;
 }
 
-.snd-title-l1{font-weight:300;font-size:53.5px;}
+.snd-title-l1{font-weight:300;font-size:37px;}
 
-.snd-title-l2{font-weight:700;font-size:25px;margin-top: -6px;}
+.snd-title-l2{font-weight:700;font-size:22.5px;margin-top: -3px;}
 
 .snd-title-l3{font-weight:100;font-size:22px;}
 
-.snd-icon{margin-bottom:22px;}
+.snd-icon{
+  position: absolute;
+  top: 20px;
+}
+
+.snd-icon img{
+  width: 110%;
+}
 
 .snd-text{
-  font-size:13.5px;
-  color:rgba(255,255,255,.85);
-  line-height:1.5;
-  margin:0 0 18px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, .85);
+  line-height: 1.5;
+  margin: 25px 0 0 90px;
+  text-align: right;
 }
 .snd-text strong{font-weight:700;color:var(--paper);}
 

@@ -306,26 +306,19 @@ function SeccionNoDisponible() {
   return (
     <div className="snd">
       <img className="snd-logo" src={LOGO_APP} alt="Logo" />
-      <h2 className="snd-title">
-        <span className="snd-title-l1">SECCIÓN</span>
-        <span className="snd-title-l2">TEMPORALMENTE</span>
-        <span className="snd-title-l3">NO DISPONIBLE</span>
+      <h2 className="snd-title">        
+        <span className="snd-title-l1">ESTA SECCIÓN</span>
+        <span className="snd-title-l2">SE ACTIVARÁ CUANDO</span>
+        <span className="snd-title-l3">INICIE EXPO WINNERS</span> 
       </h2>
       <div className="snd-icon">
-        <IconEnConstruccion />
-      </div>
-      <p className="snd-text">
-        Esta sección se activará cuando<br /><strong>inicie {EVENTO.nombre}.</strong>
-      </p>
+        <img src="/media/Codi.png" alt=""/>;
+      </div>      
       <p className="snd-text">
         ¡Te esperamos para vivir<br /><strong>la experiencia completa!</strong>
       </p>
     </div>
   );
-}
-
-function IconEnConstruccion() {
-  return <img src="/media/Icono_Construccion.svg" alt="" width="100" height="100" />;
 }
 
 function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {

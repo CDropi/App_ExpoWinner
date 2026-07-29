@@ -9,7 +9,7 @@ export default function SoloMobil() {
         </p>  
       </div>
       <div className="solo-mobil-icon">
-        <img src="/public/media/Codi_Web.png"></img>
+        <img src="/media/Codi_Web.png"></img>
       </div>
     </div>
   );

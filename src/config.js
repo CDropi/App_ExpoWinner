@@ -54,7 +54,7 @@ export const LOGO_APP = "/media/Logo_ExpoWinner_Horizontal.png";
 export const LOGO_LOGIN_STAFF = "/media/Logo_ExpoWinner_Horizontal.png";
 
 // 2.6) URL de tu landing donde las personas se registran (usada en "Regístrate aquí").
-export const URL_REGISTRO_LANDING = "https://tu-landing.com/registro";
+export const URL_REGISTRO_LANDING = "https://dropi.co/expowinners";
 
 // 3) PINs válidos para el personal de puerta (agrega los que necesites)
 //    Cambia esto antes de publicar. Es una barrera básica, no una autenticación real.

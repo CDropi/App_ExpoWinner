@@ -158,7 +158,6 @@ button:disabled{opacity:.5;cursor:default;}
 }
 
 .login-logo-Staff {
-  background-color: red;
   width:200px;
   object-fit:contain;
   margin:0 auto 18px;

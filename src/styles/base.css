@@ -198,6 +198,9 @@ button:disabled{opacity:.5;cursor:default;}
 .login-subtitle strong{font-weight:700;}
 
 .login-input{
+  display: block;
+  width: 100%;
+  box-sizing:border-box;
   padding:10px 22px;
   border-radius:15px;
   border:1px solid rgba(168, 168, 168, 0.35);

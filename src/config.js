@@ -27,8 +27,8 @@ export const EVENTO = {
   lugar: "Ágora",
   anio: "2026",
   dias: [
-    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "18:00", imagen: "/media/Banner_1.png" },
-    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "18:00", imagen: "/media/Banner_2.png" }
+    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "8:00am", imagen: "/media/Banner_1.png" },
+    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "8:00am", imagen: "/media/Banner_2.png" }
   ]
 };
 

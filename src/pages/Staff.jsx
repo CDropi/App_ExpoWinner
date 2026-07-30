@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { MODO_PRUEBA } from '../config.js';
+import { MODO_PRUEBA, IMAGEN_FONDO_LOGIN, LOGO_LOGIN } from '../config.js';
 import { procesarCheckin, obtenerContador } from '../lib/dataLayer.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import AuthGate from '../components/AuthGate.jsx';
 import '../styles/staff.css';
+
+// Arma "Carlos Diaz" a partir de "carlos.diaz@dropi.co" — toma la parte
+// antes del @, la separa por puntos, y pone mayúscula inicial a cada parte.
+function nombreDesdeCorreo(email) {
+  if (!email) return 'Colaborador';
+  const local = email.split('@')[0] || '';
+  const partes = local.split(/[._-]+/).filter(Boolean);
+  if (partes.length === 0) return 'Colaborador';
+  return partes
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join(' ');
+}
 
 export default function Staff() {
   const esMobil = useEsMobil();
@@ -32,6 +44,15 @@ function ScannerView({ usuario, onLogout }) {
   const qrRef = useRef(null);
   const scanningRef = useRef(true);
   const readerErrorRef = useRef(false);
+
+  // Mismo fondo con textura que usa el resto de la app (login público y
+  // login de staff) — sin esto, la pantalla del escáner quedaba con el
+  // fondo plano de base.css apenas se iniciaba sesión.
+  useEffect(() => {
+    document.body.style.backgroundImage = `url("${IMAGEN_FONDO_LOGIN}")`;
+    return () => { document.body.style.backgroundImage = ''; };
+  }, []);
+
 
   useEffect(() => {
     obtenerContador().then(setCounter).catch(() => {});
@@ -104,20 +125,42 @@ function ScannerView({ usuario, onLogout }) {
     <>
       <div id="flash" className={flashKind ? `show ${flashKind}` : ''} />
 
-      <div id="scannerView" style={{ display: 'block' }}>
-        {MODO_PRUEBA && (
-          <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
-        )}
-        <div className="topbar">
-          <div>
-            <div className="eyebrow">Control de ingreso</div>
-            {usuario?.email && <div className="staff-email">{usuario.email}</div>}
+      <div id="scannerView" style={{ display: 'flex' }}>
+        <div className="staff-header">
+          <img className="staff-header-avatar" src={LOGO_LOGIN} alt="Logo" />
+          <div className="staff-header-info">
+            <div className="staff-header-greeting">Bienvenido al staff</div>
+            <div className="staff-header-name">{nombreDesdeCorreo(usuario?.email)}</div>
           </div>
-          <div className="counter">{counter} ingresos</div>
+          <button className="staff-logout" onClick={onLogout} aria-label="Cerrar sesión">
+            <img src="/media/LogOut.svg" alt="" />
+          </button>
         </div>
-        <div id="reader" ref={readerRef} />
+
+        <div className="staff-counter-row">
+          <div className="staff-counter-badge">
+            <div className="staff-counter-label">Conteo de ingresos</div>
+            <div className="staff-counter-value">{counter}</div>
+          </div>
+        </div>
+
+        <div className="staff-intro">
+          <h1 className="staff-intro-title">Control de ingreso</h1>
+          <p className="staff-intro-sub">
+            Apunta la cámara hacia el código QR del asistente para validar su ingreso de forma inmediata.
+          </p>
+        </div>
+
+        <div className="staff-scanner-frame">
+          <div id="reader" ref={readerRef} />
+          <span className="staff-scanner-corner tl" />
+          <span className="staff-scanner-corner br" />
+        </div>
+
         <div id="resultPanel" className={resultado?.kind || ''}>
-          {!resultado && <div className="rname">Apunta la cámara al código QR de la entrada</div>}
+          {!resultado && (
+            <div className="rname">Otorga permiso de cámara para comenzar a validar entradas.</div>
+          )}
           {resultado && (
             <>
               <div className="rname">{resultado.titulo}</div>
@@ -126,21 +169,28 @@ function ScannerView({ usuario, onLogout }) {
             </>
           )}
         </div>
+
         {MODO_PRUEBA && (
-          <div id="manualTest" style={{ display: 'block' }}>
-            <div className="manual-label">Prueba manual (sin cámara)</div>
-            <div className="manual-row">
-              <input
-                placeholder="Pega un ticketCode, ej. XJ4K9QAL2P"
-                value={manualCode}
-                onChange={e => setManualCode(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) procesarCodigo(manualCode.trim()); }}
-              />
-              <button onClick={() => { if (manualCode.trim()) procesarCodigo(manualCode.trim()); }}>Simular</button>
-            </div>
-          </div>
+          <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
         )}
-        <button className="staff-logout" onClick={onLogout}>Cerrar sesión</button>
+
+        <div id="manualTest" style={{ display: 'block' }}>
+          <div className="staff-manual-title">
+            ¿La cámara no inicia o no lee el código? <strong>Valida el ingreso escribiéndolo manualmente.</strong>
+          </div>
+          <div className="manual-row">
+            <input
+              className="staff-manual-input"
+              placeholder="Escribe o pega el código de la entrada"
+              value={manualCode}
+              onChange={e => setManualCode(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) procesarCodigo(manualCode.trim()); }}
+            />
+            <button className="staff-manual-button" onClick={() => { if (manualCode.trim()) procesarCodigo(manualCode.trim()); }}>
+              Validar código
+            </button>
+          </div>
+        </div>
       </div>
     </>
   );

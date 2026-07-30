@@ -27,8 +27,8 @@ export const EVENTO = {
   lugar: "Ágora",
   anio: "2026",
   dias: [
-    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "18:00", imagen: "/media/Banner1.jpg" },
-    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "18:00", imagen: "/media/Banner1.jpg" }
+    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "18:00", imagen: "/media/Banner_1.png" },
+    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "18:00", imagen: "/media/Banner_2.png" }
   ]
 };
 
@@ -39,7 +39,7 @@ export const VIDEO_INTRO = "/media/Alfa-Logomotion-ExpoWinners.webm";
 export const IMAGEN_INTRO = "/media/Fondo_Intro.jpeg";
 
 // 2.3) Banner promocional que aparece en un popup justo después de iniciar sesión.
-export const IMAGEN_POPUP_PROMO = "/media/1.png";
+export const IMAGEN_POPUP_PROMO = "/media/PIEZA-EXPOWINNER-APP.png";
 
 // 2.4) Imagen de fondo de toda la pantalla de ingreso (login + tabs de días).
 export const IMAGEN_FONDO_LOGIN = "/media/Fondo_Login.png";

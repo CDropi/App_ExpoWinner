@@ -86,7 +86,7 @@ export default function Ingreso() {
       setTickets(misTickets);
       setTab('proximos');
       // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
-      // setPromoOpen(true);
+      setPromoOpen(true);
     } catch (err) {
       console.error(err);
       setErrorHtml('Ocurrió un error al buscar tu registro. Intenta de nuevo.');

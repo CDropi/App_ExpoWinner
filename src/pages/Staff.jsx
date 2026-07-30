@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { MODO_PRUEBA, IMAGEN_FONDO_LOGIN, LOGO_LOGIN } from '../config.js';
-import { procesarCheckin, obtenerContador } from '../lib/dataLayer.js';
+import { MODO_PRUEBA, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, EVENTO } from '../config.js';
+import { procesarCheckin, obtenerContadoresPorDia, obtenerAsistentesIngresados } from '../lib/dataLayer.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import AuthGate from '../components/AuthGate.jsx';
@@ -35,10 +35,14 @@ export default function Staff() {
 }
 
 function ScannerView({ usuario, onLogout }) {
-  const [counter, setCounter] = useState(0);
+  const [contadores, setContadores] = useState({}); // { 1: n, 2: n }
   const [flashKind, setFlashKind] = useState(''); // '', 'ok', 'bad'
   const [resultado, setResultado] = useState(null); // { kind, titulo, subtitulo, hint }
   const [manualCode, setManualCode] = useState('');
+
+  const [detalleDia, setDetalleDia] = useState(null); // id del día abierto, o null
+  const [detalleLista, setDetalleLista] = useState([]);
+  const [detalleCargando, setDetalleCargando] = useState(false);
 
   const readerRef = useRef(null);
   const qrRef = useRef(null);
@@ -55,7 +59,7 @@ function ScannerView({ usuario, onLogout }) {
 
 
   useEffect(() => {
-    obtenerContador().then(setCounter).catch(() => {});
+    obtenerContadoresPorDia().then(setContadores).catch(() => {});
 
     const qr = new Html5Qrcode('reader');
     qrRef.current = qr;
@@ -101,7 +105,7 @@ function ScannerView({ usuario, onLogout }) {
       if (r.ok) {
         flash('ok');
         setResultado({ kind: 'ok', titulo: r.data.nombre || 'Asistente', subtitulo: `✓ INGRESO VÁLIDO · DÍA ${r.data.dia}` });
-        setCounter(c => c + 1);
+        setContadores(c => ({ ...c, [r.data.dia]: (c[r.data.dia] || 0) + 1 }));
       } else if (r.reason === 'already_used') {
         flash('bad');
         setResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ YA INGRESÓ · DÍA ${r.data.dia}`, hint: 'Este código ya fue validado anteriormente.' });
@@ -121,6 +125,25 @@ function ScannerView({ usuario, onLogout }) {
     }
   }
 
+  async function abrirDetalle(diaId) {
+    setDetalleDia(diaId);
+    setDetalleCargando(true);
+    try {
+      const lista = await obtenerAsistentesIngresados(diaId);
+      setDetalleLista(lista);
+    } catch (err) {
+      console.error(err);
+      setDetalleLista([]);
+    } finally {
+      setDetalleCargando(false);
+    }
+  }
+
+  function cerrarDetalle() {
+    setDetalleDia(null);
+    setDetalleLista([]);
+  }
+
   return (
     <>
       <div id="flash" className={flashKind ? `show ${flashKind}` : ''} />
@@ -137,15 +160,29 @@ function ScannerView({ usuario, onLogout }) {
           </button>
         </div>
 
-        <div className="staff-counter-row">
-          <div className="staff-counter-badge">
-            <div className="staff-counter-label">Conteo de ingresos</div>
-            <div className="staff-counter-value">{counter}</div>
-          </div>
+        <h1 className="staff-intro-title staff-section-title">Control de ingreso</h1>
+
+        <div className="staff-day-cards">
+          {EVENTO.dias.map(dia => (
+            <button
+              key={dia.id}
+              type="button"
+              className="staff-day-card"
+              onClick={() => abrirDetalle(dia.id)}
+            >
+              <div className="staff-day-card-top">
+                <span className="staff-day-card-dot" />
+                <span className="staff-day-card-chevron">›</span>
+              </div>
+              <div className="staff-day-card-title">Ingresos {dia.etiqueta}</div>
+              <div className="staff-day-card-count">{contadores[dia.id] || 0}</div>
+            </button>
+          ))}
         </div>
 
+        <div className="staff-divider" />
+
         <div className="staff-intro">
-          <h1 className="staff-intro-title">Control de ingreso</h1>
           <p className="staff-intro-sub">
             Apunta la cámara hacia el código QR del asistente para validar su ingreso de forma inmediata.
           </p>
@@ -192,6 +229,37 @@ function ScannerView({ usuario, onLogout }) {
           </div>
         </div>
       </div>
+
+      {detalleDia && (
+        <div className="staff-detalle-overlay" onClick={e => { if (e.target === e.currentTarget) cerrarDetalle(); }}>
+          <div className="staff-detalle-panel">
+            <div className="staff-detalle-header">
+              <div>
+                <div className="staff-detalle-eyebrow">Ingresos registrados</div>
+                <div className="staff-detalle-title">
+                  {EVENTO.dias.find(d => d.id === detalleDia)?.etiqueta} · {detalleLista.length} de {contadores[detalleDia] || 0}
+                </div>
+              </div>
+              <button type="button" className="staff-detalle-close" onClick={cerrarDetalle} aria-label="Cerrar">✕</button>
+            </div>
+
+            <div className="staff-detalle-lista">
+              {detalleCargando && <div className="staff-detalle-vacio">Cargando...</div>}
+              {!detalleCargando && detalleLista.length === 0 && (
+                <div className="staff-detalle-vacio">Todavía nadie ha ingresado este día.</div>
+              )}
+              {!detalleCargando && detalleLista.map(persona => (
+                <div key={persona.ticketCode} className="staff-detalle-item">
+                  <div className="staff-detalle-nombre">{persona.nombre || 'Sin nombre'}</div>
+                  <div className="staff-detalle-dato">📱 {persona.telefono || '—'}</div>
+                  <div className="staff-detalle-dato">✉️ {persona.correo || '—'}</div>
+                  <div className="staff-detalle-codigo">{persona.ticketCode}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -208,6 +208,62 @@ export async function obtenerContador() {
   return snap.exists() ? (snap.data().count || 0) : 0;
 }
 
+// Conteo de ingresos separado por día: { 1: n, 2: n, ... }
+export async function obtenerContadoresPorDia() {
+  if (MODO_PRUEBA) {
+    const stats = leerStats();
+    const resultado = {};
+    for (const dia of EVENTO.dias) resultado[dia.id] = stats[`count_dia${dia.id}`] || 0;
+    return resultado;
+  }
+  const db = getDb();
+  const snap = await getDoc(doc(db, "stats", "checkins"));
+  const data = snap.exists() ? snap.data() : {};
+  const resultado = {};
+  for (const dia of EVENTO.dias) resultado[dia.id] = data[`count_dia${dia.id}`] || 0;
+  return resultado;
+}
+
+// Lista de personas que YA ingresaron en un día puntual, con su nombre,
+// teléfono, correo (cruzando con preregistros) y el código de su ticket.
+export async function obtenerAsistentesIngresados(diaId) {
+  let ticketsDelDia;
+  if (MODO_PRUEBA) {
+    ticketsDelDia = leerTickets().filter(t => t.dia === diaId && t.checkedIn);
+  } else {
+    const db = getDb();
+    const q = query(
+      collection(db, "tickets"),
+      where("dia", "==", diaId),
+      where("checkedIn", "==", true)
+    );
+    const snap = await getDocs(q);
+    ticketsDelDia = snap.docs.map(d => ({ ticketCode: d.id, ...d.data() }));
+  }
+
+  // Cruza cada ticket con su preregistro para sacar el correo.
+  const conCorreo = await Promise.all(
+    ticketsDelDia.map(async (t) => {
+      let correo = "";
+      try {
+        const persona = await buscarPersonaPorId(t.personId);
+        correo = persona?.correo || "";
+      } catch (err) {
+        console.error(err);
+      }
+      return {
+        nombre: t.nombre || "",
+        telefono: t.personId || "",
+        correo,
+        ticketCode: t.ticketCode,
+        checkedInAt: t.checkedInAt || null,
+      };
+    })
+  );
+
+  return conCorreo;
+}
+
 // ---- Admin ----
 
 // rows: [{id, nombre, correo}], onProgress: (subidos, total) => void

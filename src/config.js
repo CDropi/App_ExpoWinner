@@ -22,13 +22,13 @@ export const firebaseConfig = {
 // 2) Datos del evento (se muestran en las tarjetas de cada día)
 //    Las imágenes viven en /public/media, así que la ruta empieza en "/media/..."
 export const EVENTO = {
-  nombre: "EXPO WINNER",
-  ciudad: "Bogotá",
+  nombre: "EXPO WINNERS",
+  ciudad: "Bogotá / 8am - 5pm",
   lugar: "Ágora",
   anio: "2026",
   dias: [
-    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", hora: "8:00am", imagen: "/media/Banner_1.png" },
-    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", hora: "8:00am", imagen: "/media/Banner_2.png" }
+    { id: 1, etiqueta: "Día 1", fecha: "12 SEP", imagen: "/media/Banner_1.png" },
+    { id: 2, etiqueta: "Día 2", fecha: "13 SEP", imagen: "/media/Banner_2.png" }
   ]
 };
 

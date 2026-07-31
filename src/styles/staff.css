@@ -235,7 +235,7 @@ body{
 }
 
 /* Título + descripción (reemplaza el saludo, sin nombre de persona) */
-.staff-intro{text-align:center;margin-bottom:8px;flex-shrink:0;}
+.staff-intro{text-align:center;margin-bottom:8px;flex-shrink:0;margin-top: 12px;}
 .staff-intro-title{
   font-family:'Tusker',sans-serif;
   font-weight:700;
@@ -252,7 +252,7 @@ body{
 .staff-divider{
   width:100%;
   height:1px;
-  background:rgba(255,255,255,.15);
+  background:rgba(255,255,255,.35);
   margin:0 0 8px;
   flex-shrink:0;
 }
@@ -264,69 +264,140 @@ body{
   margin:0 auto;
 }
 
+.staff-intro-sub strong{
+  font-weight: 700;
+}
+
 /* Marco del escáner con esquinas estilo mira de cámara */
 .staff-scanner-frame{
   position:relative;
   width:100%;
-  flex:1;
-  min-height:130px;
-  max-height:400px;
+  max-width:400px;
+  aspect-ratio:1 / 1;
+  margin:0 auto 10px;
+  flex-shrink:0;
   border-radius:22px;
   overflow:hidden;
   background:rgba(20,15,10,.35);
   border:1px solid rgba(255,255,255,.08);
-  margin-bottom:10px;
 }
 #reader{width:100%;height:100%;}
 #reader video{width:100% !important;height:100% !important;object-fit:cover;}
-.staff-scanner-corner{
-  position:absolute;
-  width:34px;height:34px;
-  pointer-events:none;
-}
-.staff-scanner-corner.tl{
-  top:16px;left:16px;
-  border-top:3px solid var(--brand-orange,#ED6F2D);
-  border-left:3px solid var(--brand-orange,#ED6F2D);
-  border-radius:8px 0 0 0;
-}
-.staff-scanner-corner.br{
-  bottom:16px;right:16px;
-  border-bottom:3px solid var(--brand-orange,#ED6F2D);
-  border-right:3px solid var(--brand-orange,#ED6F2D);
-  border-radius:0 0 8px 0;
+/* Las esquinas de la mira NO son un elemento nuestro: las dibuja la propia
+   librería html5-qrcode (por defecto en blanco y en ángulo recto) dentro de
+   #qr-shaded-region. Aquí las recoloreamos a naranja y las redondeamos.
+   Usamos !important porque la librería las pinta con estilos inline. */
+#reader #qr-shaded-region > div{
+  background-color:var(--brand-orange,#ED6F2D) !important;
+  border-radius:6px !important;
 }
 
-/* Pestaña de resultado: se desliza sobre la vista al escanear un QR,
-   en verde si la entrada es válida y en rojo si no lo es, y se retira
-   sola pasado un momento para dejar lista la siguiente validación. */
+/* Pestaña de resultado: sube desde abajo como un modal de hoja (bottom
+   sheet) que ocupa 3/4 de la pantalla, en verde si la entrada es válida y
+   en rojo si no lo es, y se retira sola pasado un momento (o al tocar el
+   botón / el fondo oscurecido) para dejar lista la siguiente validación. */
+.staff-result-backdrop{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease;
+  z-index:65;
+}
+.staff-result-backdrop.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
 .staff-result-sheet{
   position:fixed;
-  top:calc(14px + env(safe-area-inset-top));
   left:50%;
-  width:calc(100% - 70px);
-  max-width:410px;
-  padding:14px 18px;
-  border-radius:16px;
+  bottom:0;
+  transform:translate(-50%, 100%);
+  width:100%;
+  max-width:480px;
+  height:75dvh;
+  max-height:75dvh;
   box-sizing:border-box;
+  padding:10px 26px calc(20px + env(safe-area-inset-bottom));
+  border-radius:26px 26px 0 0;
+  background:var(--bg-2);
+  box-shadow:0 -12px 40px rgba(0,0,0,.4);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
   text-align:center;
   z-index:70;
-  background:var(--bg-2);
-  box-shadow:0 12px 28px rgba(0,0,0,.35);
-  transform:translate(-50%, calc(-140% - env(safe-area-inset-top)));
-  opacity:0;
-  transition:transform .32s cubic-bezier(.32,.72,0,1), opacity .25s ease, background .15s ease;
+  transition:transform .34s cubic-bezier(.32,.72,0,1), background .2s ease;
   pointer-events:none;
+  overflow:hidden;
+  touch-action:none;
 }
 .staff-result-sheet.show{
   transform:translate(-50%, 0);
-  opacity:1;
+  pointer-events:auto;
 }
-.staff-result-sheet.ok{background:rgba(47,174,92,.95);}
-.staff-result-sheet.bad{background:rgba(224,71,62,.95);}
-.staff-result-sheet .rname{font-family:'Tusker',sans-serif;font-weight:700;font-size:14px;color:#fff;}
-.staff-result-sheet .rstatus{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:3px;letter-spacing:.04em;color:#fff;}
-.staff-result-sheet .rhint{font-size:11px;color:rgba(255,255,255,.85);margin-top:5px;}
+.staff-result-sheet.dragging{
+  transition:none;
+}
+.staff-result-sheet.ok{background:rgba(40,150,80,.97);}
+.staff-result-sheet.bad{background:rgba(190,58,50,.97);}
+
+.staff-result-handle{
+  width:42px;height:5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.4);
+  margin:10px 0 4px;
+  flex-shrink:0;
+}
+.staff-result-content{
+  flex:1;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.staff-result-icon{
+  width:68px;height:68px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  background:rgba(255,255,255,.16);
+  border:2px solid rgba(255,255,255,.55);
+  margin-bottom:18px;
+  flex-shrink:0;
+}
+.staff-result-sheet .rname{font-family:'Tusker',sans-serif;font-weight:700;font-size:22px;color:#fff;margin-bottom:8px;}
+.staff-result-sheet .rstatus{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em;color:#fff;opacity:.95;}
+.staff-result-sheet .rhint{font-size:12.5px;color:rgba(255,255,255,.85);margin-top:12px;max-width:280px;}
+.staff-result-close{
+  flex-shrink:0;
+  margin-top:16px;
+  padding:12px 34px;
+  border-radius:999px;
+  border:1.5px solid rgba(255,255,255,.6);
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.staff-result-close:hover,
+.staff-result-close:focus,
+.staff-result-close:active{
+  background:rgba(255,255,255,.22);
+  outline:none;
+  transform:none;
+}
 
 #flash{
   position:fixed;inset:0;pointer-events:none;opacity:0;z-index:50;
@@ -344,36 +415,13 @@ body{
   text-align:center;
   font-size:11.5px;
   color:rgba(255,255,255,.9);
-  margin-bottom:8px;
+  margin:8px 0;
 }
 .staff-manual-title strong{font-weight:700;color:#fff;}
 .manual-row{display:flex;flex-direction:column;gap:8px;}
-.staff-manual-input{
-  width:100%;
-  box-sizing:border-box;
-  padding:10px 18px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(6px);
-  color:var(--paper);
-  font-family:'Montserrat',sans-serif;
-  font-size:13px;
-  outline:none;
-}
-.staff-manual-input::placeholder{color:rgba(255,255,255,.4);}
-.staff-manual-input:focus{border-color:var(--brand-orange,#ED6F2D);}
-.staff-manual-button{
-  align-self:center;
-  padding:8px 24px;
-  border-radius:999px;
-  background:transparent;
-  border:1px solid var(--brand-orange,#ED6F2D);
-  color:#fff;
-  font-family:'Montserrat',sans-serif;
-  font-size:13px;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  cursor:pointer;
-}
-.staff-manual-button:hover{background:rgba(237,111,45,.15);}
+/* El input y el botón reutilizan las mismas clases del login
+   (.login-input/.staff-login-input y .staff-login-button); aquí solo
+   ajustamos su posición dentro de esta columna en concreto. */
+.manual-row .login-input{margin-bottom:0;}
+.manual-row .staff-login-button{align-self:center;margin:0;}
+#manualTest .error-msg{text-align:center;margin:8px 0 0;}

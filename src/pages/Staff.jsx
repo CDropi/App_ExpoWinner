@@ -39,9 +39,13 @@ function ScannerView({ usuario, onLogout }) {
   const [flashKind, setFlashKind] = useState(''); // '', 'ok', 'bad'
   const [resultado, setResultado] = useState(null); // { kind, titulo, subtitulo, hint }
   const [panelVisible, setPanelVisible] = useState(false); // controla el deslizamiento de la pestaña de resultado
+  const [dragOffset, setDragOffset] = useState(0); // px arrastrados hacia abajo mientras el usuario desliza la hoja
+  const [isDragging, setIsDragging] = useState(false);
   const [manualCode, setManualCode] = useState('');
+  const [manualError, setManualError] = useState('');
 
-  const panelTimeoutRef = useRef(null);
+  const sheetRef = useRef(null);
+  const dragStateRef = useRef({ startY: 0, dragging: false });
 
   const [detalleDia, setDetalleDia] = useState(null); // id del día abierto, o null
   const [detalleLista, setDetalleLista] = useState([]);
@@ -94,22 +98,49 @@ function ScannerView({ usuario, onLogout }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    return () => { if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current); };
-  }, []);
+  // Arrastre para cerrar la hoja de resultado deslizándola hacia abajo.
+  function handleSheetPointerDown(e) {
+    if (!panelVisible) return;
+    dragStateRef.current = { startY: e.clientY, dragging: true };
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }
+
+  function handleSheetPointerMove(e) {
+    if (!dragStateRef.current.dragging) return;
+    const delta = e.clientY - dragStateRef.current.startY;
+    if (delta > 0) setDragOffset(delta);
+  }
+
+  function handleSheetPointerUp() {
+    if (!dragStateRef.current.dragging) return;
+    dragStateRef.current.dragging = false;
+    setIsDragging(false);
+    const alturaHoja = sheetRef.current?.offsetHeight || 400;
+    if (dragOffset > alturaHoja * 0.22) {
+      ocultarResultado();
+    } else {
+      setDragOffset(0);
+    }
+  }
 
   function flash(kind) {
     setFlashKind(kind);
     setTimeout(() => setFlashKind(''), 350);
   }
 
-  // Muestra la pestaña de resultado deslizándola a la vista, y la oculta
-  // automáticamente pasado un tiempo para dejar lista la siguiente validación.
-  function mostrarResultado(datos, duracionMs = 2600) {
+  // Muestra la pestaña de resultado deslizándola a la vista. Ya no se
+  // oculta sola: el staff la cierra tocando fuera, deslizándola hacia
+  // abajo, o con el botón "Seguir escaneando".
+  function mostrarResultado(datos) {
     setResultado(datos);
     setPanelVisible(true);
-    if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current);
-    panelTimeoutRef.current = setTimeout(() => setPanelVisible(false), duracionMs);
+    setDragOffset(0);
+  }
+
+  function ocultarResultado() {
+    setPanelVisible(false);
+    setDragOffset(0);
   }
 
   async function procesarCodigo(ticketCode) {
@@ -141,6 +172,16 @@ function ScannerView({ usuario, onLogout }) {
     }
   }
 
+  function validarCodigoManual() {
+    const code = manualCode.trim();
+    if (!code) {
+      setManualError('Por favor ingresa un código');
+      return;
+    }
+    setManualError('');
+    procesarCodigo(code);
+  }
+
   async function abrirDetalle(diaId) {
     setDetalleDia(diaId);
     setDetalleCargando(true);
@@ -165,16 +206,35 @@ function ScannerView({ usuario, onLogout }) {
       <div id="flash" className={flashKind ? `show ${flashKind}` : ''} />
 
       <div
+        className={`staff-result-backdrop ${panelVisible ? 'show' : ''}`}
+        onClick={ocultarResultado}
+      />
+      <div
+        ref={sheetRef}
         id="resultSheet"
-        className={`staff-result-sheet ${resultado?.kind || ''} ${panelVisible ? 'show' : ''}`}
+        className={`staff-result-sheet ${resultado?.kind || ''} ${panelVisible ? 'show' : ''} ${isDragging ? 'dragging' : ''}`}
+        style={panelVisible ? { transform: `translate(-50%, ${dragOffset}px)` } : undefined}
+        onPointerDown={handleSheetPointerDown}
+        onPointerMove={handleSheetPointerMove}
+        onPointerUp={handleSheetPointerUp}
+        onPointerCancel={handleSheetPointerUp}
         role="status"
         aria-live="polite"
       >
         {resultado && (
           <>
-            <div className="rname">{resultado.titulo}</div>
-            <div className="rstatus">{resultado.subtitulo}</div>
-            {resultado.hint && <div className="rhint">{resultado.hint}</div>}
+            <span className="staff-result-handle" />
+            <div className="staff-result-content">
+              <div className={`staff-result-icon ${resultado.kind}`}>
+                {resultado.kind === 'ok' ? '✓' : '✕'}
+              </div>
+              <div className="rname">{resultado.titulo}</div>
+              <div className="rstatus">{resultado.subtitulo}</div>
+              {resultado.hint && <div className="rhint">{resultado.hint}</div>}
+            </div>
+            <button type="button" className="staff-result-close" onClick={ocultarResultado}>
+              Seguir escaneando
+            </button>
           </>
         )}
       </div>
@@ -216,14 +276,12 @@ function ScannerView({ usuario, onLogout }) {
 
         <div className="staff-intro">
           <p className="staff-intro-sub">
-            Escanea el QR para validar el ingreso
+            Escanea el QR para <strong>validar el ingreso</strong>
           </p>
         </div>
 
         <div className="staff-scanner-frame">
           <div id="reader" ref={readerRef} />
-          <span className="staff-scanner-corner tl" />
-          <span className="staff-scanner-corner br" />
         </div>
 
         {MODO_PRUEBA && (
@@ -232,20 +290,21 @@ function ScannerView({ usuario, onLogout }) {
 
         <div id="manualTest" style={{ display: 'block' }}>
           <div className="staff-manual-title">
-            ¿La cámara no inicia o no lee el código? <strong>Valida el ingreso escribiéndolo manualmente.</strong>
+            O ingresa el código <strong>manualmente</strong>
           </div>
           <div className="manual-row">
             <input
-              className="staff-manual-input"
-              placeholder="Escribe o pega el código de la entrada"
+              className="login-input staff-login-input"
+              placeholder="Escribe el código de la entrada"
               value={manualCode}
-              onChange={e => setManualCode(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && manualCode.trim()) procesarCodigo(manualCode.trim()); }}
+              onChange={e => { setManualCode(e.target.value); if (manualError) setManualError(''); }}
+              onKeyDown={e => { if (e.key === 'Enter') validarCodigoManual(); }}
             />
-            <button className="staff-manual-button" onClick={() => { if (manualCode.trim()) procesarCodigo(manualCode.trim()); }}>
+            <button className="staff-login-button" onClick={validarCodigoManual}>
               Validar código
             </button>
           </div>
+          {manualError && <div className="error-msg" style={{ display: 'block' }}>{manualError}</div>}
         </div>
       </div>
 

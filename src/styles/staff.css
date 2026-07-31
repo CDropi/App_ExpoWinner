@@ -37,7 +37,7 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
-  margin-bottom:8px;
+  margin-bottom:15px;
   flex-shrink:0;
 }
 .staff-header-avatar{
@@ -61,6 +61,8 @@ body{
 .staff-header-name{
   font-family:'Montserrat';
   color:#fff;
+  margin-top: -3px;
+
 }
 
 /* Botón de logout con "vidrio líquido" — mismo lenguaje que los inputs
@@ -83,7 +85,12 @@ body{
   -webkit-backdrop-filter:blur(6px) saturate(140%);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
 }
-.staff-logout img{width:18px;height:18px;display:block;}
+.staff-logout img{
+  width:18px;
+  height:18px;
+  display:block;
+  margin-left: -5px;
+}
 .staff-logout:hover img{opacity:.8;}
 .staff-logout:hover,
 .staff-logout:focus,
@@ -99,44 +106,76 @@ body{
   width:100%;
   display:flex;
   gap:10px;
-  margin-bottom:8px;
+  margin:8px 0px;
   flex-shrink:0;
 }
 .staff-day-card{
   flex:1;
-  text-align:left;
-  padding:9px 12px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.22);
-  background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.05));
-  backdrop-filter:blur(8px) saturate(140%);
-  -webkit-backdrop-filter:blur(8px) saturate(140%);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.2), inset 0 -1px 5px rgba(0,0,0,.12);
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
+  display:flex;
+  flex-direction:column;
+  padding: 5px 10px 10px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.14);
+  background: linear-gradient(135deg, rgb(98 98 98 / 15%), rgb(120 120 120 / 35%)), rgba(40, 40, 45, .3);
+  backdrop-filter: blur(.5px) saturate(130%);
+  -webkit-backdrop-filter:blur(.5px) saturate(130%);
 }
-.staff-day-card:hover,
-.staff-day-card:focus,
-.staff-day-card:active{
-  outline:none !important;
-  transform:none !important;
-  background:linear-gradient(135deg, rgba(255,255,255,.26), rgba(255,255,255,.07)) !important;
-}
+
 .staff-day-card-top{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  margin-bottom:5px;
+  gap:6px;
+  background:transparent;
+  border:none;
+  padding:2px 4px 8px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  width:100%;
+  margin-top: 0px;
 }
-.staff-day-card-dot{
-  width:9px;height:9px;
+.staff-day-card-top:hover,
+.staff-day-card-top:focus,
+.staff-day-card-top:active{
+  outline:none !important;
+  transform:none !important;
+  background:transparent !important;
+}
+.staff-day-card-live{
+  width:8px;height:8px;
   border-radius:50%;
-  background:var(--brand-orange,#ED6F2D);
-  display:inline-block;
+  background:#fff;
+  flex-shrink:0;
+  animation:staffLivePulse 1.6s ease-in-out infinite;
 }
-.staff-day-card-chevron{color:rgba(255,255,255,.6);font-size:16px;line-height:1;}
-.staff-day-card-title{font-size:11.5px;color:rgba(255,255,255,.85);margin-bottom:4px;}
-.staff-day-card-count{font-family:'Tusker',sans-serif;font-weight:700;font-size:20px;color:#fff;}
+@keyframes staffLivePulse{
+  0%, 100%{opacity:1;}
+  50%{opacity:.35;}
+}
+.staff-day-card-title{
+  flex:1;
+  text-align:left;
+  font-family:'Montserrat';
+  font-weight:400;
+  font-size:14px;
+  color:#fff;
+  text-transform:uppercase;
+}
+.staff-day-card-chevron{
+  width:8px;
+  height:auto;
+  opacity:.85;
+  flex-shrink:0;
+}
+.staff-day-card-count{
+  background: rgb(0 0 0 / 35%);
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 5px;
+  text-align: center;
+  font-family: 'Montserrat';
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
+}
 
 /* Panel de detalle: lista de personas ya ingresadas ese día */
 .staff-detalle-overlay{
@@ -206,8 +245,9 @@ body{
 }
 .staff-section-title{
   text-align:left;
-  margin:0 0 10px;
+  margin:0;
   flex-shrink:0;
+  letter-spacing: 1px;
 }
 .staff-divider{
   width:100%;
@@ -230,7 +270,7 @@ body{
   width:100%;
   flex:1;
   min-height:130px;
-  max-height:340px;
+  max-height:400px;
   border-radius:22px;
   overflow:hidden;
   background:rgba(20,15,10,.35);
@@ -257,28 +297,36 @@ body{
   border-radius:0 0 8px 0;
 }
 
-#resultPanel{
-  flex-shrink:0;
-  margin-top:0;
-  margin-bottom:10px;
-  padding:12px;
-  border-radius:14px;
-  background:var(--bg-2);
-  min-height:52px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
+/* Pestaña de resultado: se desliza sobre la vista al escanear un QR,
+   en verde si la entrada es válida y en rojo si no lo es, y se retira
+   sola pasado un momento para dejar lista la siguiente validación. */
+.staff-result-sheet{
+  position:fixed;
+  top:calc(14px + env(safe-area-inset-top));
+  left:50%;
+  width:calc(100% - 70px);
+  max-width:410px;
+  padding:14px 18px;
+  border-radius:16px;
+  box-sizing:border-box;
   text-align:center;
-  transition:background .15s ease;
+  z-index:70;
+  background:var(--bg-2);
+  box-shadow:0 12px 28px rgba(0,0,0,.35);
+  transform:translate(-50%, calc(-140% - env(safe-area-inset-top)));
+  opacity:0;
+  transition:transform .32s cubic-bezier(.32,.72,0,1), opacity .25s ease, background .15s ease;
+  pointer-events:none;
 }
-#resultPanel.ok{background:rgba(47,174,92,.16);}
-#resultPanel.bad{background:rgba(224,71,62,.16);}
-#resultPanel .rname{font-family:'Tusker',sans-serif;font-weight:700;font-size:14px;}
-#resultPanel .rstatus{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:3px;letter-spacing:.04em;}
-#resultPanel .rstatus.ok{color:var(--green);}
-#resultPanel .rstatus.bad{color:var(--red);}
-#resultPanel .rhint{font-size:11px;color:var(--muted);margin-top:5px;}
+.staff-result-sheet.show{
+  transform:translate(-50%, 0);
+  opacity:1;
+}
+.staff-result-sheet.ok{background:rgba(47,174,92,.95);}
+.staff-result-sheet.bad{background:rgba(224,71,62,.95);}
+.staff-result-sheet .rname{font-family:'Tusker',sans-serif;font-weight:700;font-size:14px;color:#fff;}
+.staff-result-sheet .rstatus{font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:3px;letter-spacing:.04em;color:#fff;}
+.staff-result-sheet .rhint{font-size:11px;color:rgba(255,255,255,.85);margin-top:5px;}
 
 #flash{
   position:fixed;inset:0;pointer-events:none;opacity:0;z-index:50;

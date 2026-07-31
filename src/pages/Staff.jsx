@@ -38,7 +38,10 @@ function ScannerView({ usuario, onLogout }) {
   const [contadores, setContadores] = useState({}); // { 1: n, 2: n }
   const [flashKind, setFlashKind] = useState(''); // '', 'ok', 'bad'
   const [resultado, setResultado] = useState(null); // { kind, titulo, subtitulo, hint }
+  const [panelVisible, setPanelVisible] = useState(false); // controla el deslizamiento de la pestaña de resultado
   const [manualCode, setManualCode] = useState('');
+
+  const panelTimeoutRef = useRef(null);
 
   const [detalleDia, setDetalleDia] = useState(null); // id del día abierto, o null
   const [detalleLista, setDetalleLista] = useState([]);
@@ -91,9 +94,22 @@ function ScannerView({ usuario, onLogout }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return () => { if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current); };
+  }, []);
+
   function flash(kind) {
     setFlashKind(kind);
     setTimeout(() => setFlashKind(''), 350);
+  }
+
+  // Muestra la pestaña de resultado deslizándola a la vista, y la oculta
+  // automáticamente pasado un tiempo para dejar lista la siguiente validación.
+  function mostrarResultado(datos, duracionMs = 2600) {
+    setResultado(datos);
+    setPanelVisible(true);
+    if (panelTimeoutRef.current) clearTimeout(panelTimeoutRef.current);
+    panelTimeoutRef.current = setTimeout(() => setPanelVisible(false), duracionMs);
   }
 
   async function procesarCodigo(ticketCode) {
@@ -104,22 +120,22 @@ function ScannerView({ usuario, onLogout }) {
       const r = await procesarCheckin(ticketCode);
       if (r.ok) {
         flash('ok');
-        setResultado({ kind: 'ok', titulo: r.data.nombre || 'Asistente', subtitulo: `✓ INGRESO VÁLIDO · DÍA ${r.data.dia}` });
+        mostrarResultado({ kind: 'ok', titulo: r.data.nombre || 'Asistente', subtitulo: `✓ INGRESO VÁLIDO · DÍA ${r.data.dia}` });
         setContadores(c => ({ ...c, [r.data.dia]: (c[r.data.dia] || 0) + 1 }));
       } else if (r.reason === 'already_used') {
         flash('bad');
-        setResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ YA INGRESÓ · DÍA ${r.data.dia}`, hint: 'Este código ya fue validado anteriormente.' });
+        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ YA INGRESÓ · DÍA ${r.data.dia}`, hint: 'Este código ya fue validado anteriormente.' });
       } else if (r.reason === 'dia_incorrecto') {
         flash('bad');
-        setResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ ENTRADA DE OTRO DÍA (DÍA ${r.data.dia})`, hint: 'Esta entrada no corresponde al día de hoy. No se marcó como usada.' });
+        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ ENTRADA DE OTRO DÍA (DÍA ${r.data.dia})`, hint: 'Esta entrada no corresponde al día de hoy. No se marcó como usada.' });
       } else {
         flash('bad');
-        setResultado({ kind: 'bad', titulo: 'Código no encontrado', subtitulo: '✕ ENTRADA INVÁLIDA', hint: 'Este QR no corresponde a ninguna entrada registrada.' });
+        mostrarResultado({ kind: 'bad', titulo: 'Código no encontrado', subtitulo: '✕ ENTRADA INVÁLIDA', hint: 'Este QR no corresponde a ninguna entrada registrada.' });
       }
     } catch (err) {
       console.error(err);
       flash('bad');
-      setResultado({ kind: 'bad', titulo: 'Error de lectura', subtitulo: '✕ INTENTA DE NUEVO' });
+      mostrarResultado({ kind: 'bad', titulo: 'Error de lectura', subtitulo: '✕ INTENTA DE NUEVO' });
     } finally {
       setTimeout(() => { scanningRef.current = true; }, 1800);
     }
@@ -148,6 +164,21 @@ function ScannerView({ usuario, onLogout }) {
     <>
       <div id="flash" className={flashKind ? `show ${flashKind}` : ''} />
 
+      <div
+        id="resultSheet"
+        className={`staff-result-sheet ${resultado?.kind || ''} ${panelVisible ? 'show' : ''}`}
+        role="status"
+        aria-live="polite"
+      >
+        {resultado && (
+          <>
+            <div className="rname">{resultado.titulo}</div>
+            <div className="rstatus">{resultado.subtitulo}</div>
+            {resultado.hint && <div className="rhint">{resultado.hint}</div>}
+          </>
+        )}
+      </div>
+
       <div id="scannerView" style={{ display: 'flex' }}>
         <div className="staff-header">
           <img className="staff-header-avatar" src={LOGO_LOGIN} alt="Logo" />
@@ -164,27 +195,28 @@ function ScannerView({ usuario, onLogout }) {
 
         <div className="staff-day-cards">
           {EVENTO.dias.map(dia => (
-            <button
-              key={dia.id}
-              type="button"
-              className="staff-day-card"
-              onClick={() => abrirDetalle(dia.id)}
-            >
-              <div className="staff-day-card-top">
-                <span className="staff-day-card-dot" />
-                <span className="staff-day-card-chevron">›</span>
-              </div>
-              <div className="staff-day-card-title">Ingresos {dia.etiqueta}</div>
+            <div key={dia.id} className="staff-day-card">
+              <button
+                type="button"
+                className="staff-day-card-top"
+                onClick={() => abrirDetalle(dia.id)}
+                aria-label={`Ver detalle de ${dia.etiqueta}`}
+              >
+                <span className="staff-day-card-live" />
+                <span className="staff-day-card-title">{dia.etiqueta}</span>
+                <img className="staff-day-card-chevron" src="/media/Arrow.svg" alt="" />
+              </button>
               <div className="staff-day-card-count">{contadores[dia.id] || 0}</div>
-            </button>
+            </div>
           ))}
         </div>
+
 
         <div className="staff-divider" />
 
         <div className="staff-intro">
           <p className="staff-intro-sub">
-            Apunta la cámara hacia el código QR del asistente para validar su ingreso de forma inmediata.
+            Escanea el QR para validar el ingreso
           </p>
         </div>
 
@@ -192,19 +224,6 @@ function ScannerView({ usuario, onLogout }) {
           <div id="reader" ref={readerRef} />
           <span className="staff-scanner-corner tl" />
           <span className="staff-scanner-corner br" />
-        </div>
-
-        <div id="resultPanel" className={resultado?.kind || ''}>
-          {!resultado && (
-            <div className="rname">Otorga permiso de cámara para comenzar a validar entradas.</div>
-          )}
-          {resultado && (
-            <>
-              <div className="rname">{resultado.titulo}</div>
-              <div className={`rstatus ${resultado.kind}`}>{resultado.subtitulo}</div>
-              {resultado.hint && <div className="rhint">{resultado.hint}</div>}
-            </>
-          )}
         </div>
 
         {MODO_PRUEBA && (

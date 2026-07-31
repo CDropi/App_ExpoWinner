@@ -411,7 +411,7 @@ function TicketCompleto({ dia, ticket, nombre }) {
           </div>
           <div className="divider" />
           <div>
-            <div className="venue">{dia.etiqueta} · {dia.hora}</div>
+            <div className="venue">{dia.etiqueta}</div>
             <div className="venue-sub">{EVENTO.lugar} · {EVENTO.ciudad}</div>
           </div>
           <div className="divider" />
@@ -425,7 +425,7 @@ function TicketCompleto({ dia, ticket, nombre }) {
         </div>
         <div className="ticket-code">{ticket.ticketCode}</div>
         <div className="InfoTicket">
-          <p><strong>¡Importante!</strong> Presenta este código QR para entar al evento. Recuerda que tu código es personal e intransferible.</p>
+          <p><strong>¡Importante!</strong> Presenta este código QR para entrar al evento. Recuerda que tu código es personal e intransferible.</p>
         </div>
       </div>
     </div>

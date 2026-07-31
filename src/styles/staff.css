@@ -283,13 +283,48 @@ body{
 }
 #reader{width:100%;height:100%;}
 #reader video{width:100% !important;height:100% !important;object-fit:cover;}
-/* Las esquinas de la mira NO son un elemento nuestro: las dibuja la propia
-   librería html5-qrcode (por defecto en blanco y en ángulo recto) dentro de
-   #qr-shaded-region. Aquí las recoloreamos a naranja y las redondeamos.
-   Usamos !important porque la librería las pinta con estilos inline. */
+/* Las esquinas de la mira las dibuja por defecto la propia librería
+   html5-qrcode, pero como cada esquina es en realidad 2 rectángulos
+   separados superpuestos, redondearlas por separado las deja viéndose
+   como 2 líneas sueltas. Por eso las ocultamos (dejamos solo su sombreado
+   oscuro alrededor, que sí es un solo elemento) y dibujamos nuestras
+   propias esquinas más abajo, hechas de una sola pieza cada una para que
+   el redondeo quede continuo. */
 #reader #qr-shaded-region > div{
-  background-color:var(--brand-orange,#ED6F2D) !important;
-  border-radius:6px !important;
+  background-color:transparent !important;
+}
+
+.staff-scanner-corner{
+  position:absolute;
+  width:34px;height:34px;
+  border-color:var(--brand-orange,#ED6F2D);
+  border-style:solid;
+  border-width:0;
+  pointer-events:none;
+}
+.staff-scanner-corner.tl{
+  top:16px;left:16px;
+  border-top-width:3px;
+  border-left-width:3px;
+  border-radius:10px 0 0 0;
+}
+.staff-scanner-corner.tr{
+  top:16px;right:16px;
+  border-top-width:3px;
+  border-right-width:3px;
+  border-radius:0 10px 0 0;
+}
+.staff-scanner-corner.bl{
+  bottom:16px;left:16px;
+  border-bottom-width:3px;
+  border-left-width:3px;
+  border-radius:0 0 0 10px;
+}
+.staff-scanner-corner.br{
+  bottom:16px;right:16px;
+  border-bottom-width:3px;
+  border-right-width:3px;
+  border-radius:0 0 10px 0;
 }
 
 /* Pestaña de resultado: sube desde abajo como un modal de hoja (bottom

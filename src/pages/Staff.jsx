@@ -282,6 +282,10 @@ function ScannerView({ usuario, onLogout }) {
 
         <div className="staff-scanner-frame">
           <div id="reader" ref={readerRef} />
+          <span className="staff-scanner-corner tl" />
+          <span className="staff-scanner-corner tr" />
+          <span className="staff-scanner-corner bl" />
+          <span className="staff-scanner-corner br" />
         </div>
 
         {MODO_PRUEBA && (

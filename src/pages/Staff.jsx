@@ -149,6 +149,12 @@ function ScannerView({ usuario, onLogout }) {
     setDragOffset(0);
   }
 
+  // "DÍA 1" -> "DÍA 1 · 12 SEP" (toma la fecha configurada en EVENTO.dias)
+  function etiquetaDiaConFecha(diaId) {
+    const dia = EVENTO.dias.find(d => d.id === diaId);
+    return dia?.fecha ? `DÍA ${diaId} · ${dia.fecha}` : `DÍA ${diaId}`;
+  }
+
   async function procesarCodigo(ticketCode) {
     if (!scanningRef.current) return;
     scanningRef.current = false;
@@ -157,14 +163,14 @@ function ScannerView({ usuario, onLogout }) {
       const r = await procesarCheckin(ticketCode);
       if (r.ok) {
         flash('ok');
-        mostrarResultado({ kind: 'ok', titulo: r.data.nombre || 'Asistente', subtitulo: `✓ INGRESO VÁLIDO · DÍA ${r.data.dia}` });
+        mostrarResultado({ kind: 'ok', titulo: r.data.nombre || 'Asistente', subtitulo: `✓ INGRESO VÁLIDO · ${etiquetaDiaConFecha(r.data.dia)}` });
         setContadores(c => ({ ...c, [r.data.dia]: (c[r.data.dia] || 0) + 1 }));
       } else if (r.reason === 'already_used') {
         flash('bad');
-        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ YA INGRESÓ · DÍA ${r.data.dia}`, hint: 'Este código ya fue validado anteriormente.' });
+        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ YA INGRESÓ · ${etiquetaDiaConFecha(r.data.dia)}`, hint: 'Este código ya fue validado anteriormente.' });
       } else if (r.reason === 'dia_incorrecto') {
         flash('bad');
-        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ ENTRADA DE OTRO DÍA (DÍA ${r.data.dia})`, hint: 'Esta entrada no corresponde al día de hoy. No se marcó como usada.' });
+        mostrarResultado({ kind: 'bad', titulo: r.data.nombre || 'Asistente', subtitulo: `✕ ENTRADA DE OTRO DÍA (${etiquetaDiaConFecha(r.data.dia)})`, hint: 'Esta entrada no corresponde al día de hoy. No se marcó como usada.' });
       } else {
         flash('bad');
         mostrarResultado({ kind: 'bad', titulo: 'Código no encontrado', subtitulo: '✕ ENTRADA INVÁLIDA', hint: 'Este QR no corresponde a ninguna entrada registrada.' });

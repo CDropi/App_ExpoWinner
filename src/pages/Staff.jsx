@@ -191,6 +191,7 @@ function ScannerView({ usuario, onLogout }) {
       return;
     }
     setManualError('');
+    setManualCode('');
     procesarCodigo(code);
   }
 

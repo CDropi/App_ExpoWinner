@@ -96,6 +96,7 @@ body{
 .staff-logout:focus,
 .staff-logout:active{
   outline:none !important;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06)) !important;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15) !important;
   transform:none !important;
 }
@@ -335,6 +336,7 @@ body{
 .staff-detalle-download:focus,
 .staff-detalle-download:active{
   outline:none !important;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06)) !important;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15) !important;
   transform:none !important;
 }
@@ -540,7 +542,7 @@ body{
   transition:none;
 }
 .staff-result-sheet.ok{
-  background:linear-gradient(180deg, #050505 0%, #0a2318 55%, #123a26 100%);
+  background: linear-gradient(180deg, #050505 0%, #000c07 55%, #00391c 100%);
 }
 .staff-result-sheet.bad{
   background: linear-gradient(180deg, #050505 0%, #180001 55%, #4f0002 100%);
@@ -578,7 +580,6 @@ body{
 }
 .staff-result-icon.ok{
   color:#4ade80;
-  border-color:rgba(74,222,128,.5);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.3), inset 0 -1px 4px rgba(0,0,0,.15), 0 0 40px 8px rgba(74,222,128,.3);
 }
 .staff-result-icon.bad{
@@ -628,6 +629,7 @@ body{
 .staff-result-close:focus,
 .staff-result-close:active{
   outline:none !important;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06)) !important;
   box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15) !important;
   transform:none !important;
 }

@@ -292,6 +292,7 @@ button:disabled{opacity:.5;cursor:default;}
 /* Botón de "ver/ocultar contraseña" dentro del input de la contraseña */
 .staff-password-wrap{position:relative;}
 .staff-password-input{padding-right:46px;}
+
 .staff-password-toggle{
   position:absolute;
   top:50%;
@@ -300,20 +301,26 @@ button:disabled{opacity:.5;cursor:default;}
   width:32px;height:32px;
   border:none;
   background:transparent;
-  color:rgba(255,255,255,.55);
+  color:rgba(255, 255, 255, 0.137);
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
+  margin: 1px 0 0;
+  opacity: .4;
 }
-.staff-password-toggle svg{width:19px;height:19px;}
+.staff-password-toggle img{width:19px;height:19px;display:block;opacity:.55;transition:opacity .15s ease;}
+.staff-password-toggle:hover img,
+.staff-password-toggle:focus img,
+.staff-password-toggle:active img{opacity:1;}
 .staff-password-toggle:hover,
 .staff-password-toggle:focus,
 .staff-password-toggle:active{
   outline:none;
   transform:translateY(-50%);
   color:#fff;
+  background:transparent;
 }
 
 .staff-login-button{

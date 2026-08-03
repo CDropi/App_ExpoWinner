@@ -185,7 +185,7 @@ function ScannerView({ usuario, onLogout }) {
   }
 
   function validarCodigoManual() {
-    const code = manualCode.trim();
+    const code = manualCode.trim().toUpperCase();
     if (!code) {
       setManualError('Por favor ingresa un código');
       return;
@@ -378,7 +378,7 @@ function ScannerView({ usuario, onLogout }) {
               className="login-input staff-login-input"
               placeholder="Escribe el código de la entrada"
               value={manualCode}
-              onChange={e => { setManualCode(e.target.value); if (manualError) setManualError(''); }}
+              onChange={e => { setManualCode(e.target.value.toUpperCase()); if (manualError) setManualError(''); }}
               onKeyDown={e => { if (e.key === 'Enter') validarCodigoManual(); }}
             />
             <button className="staff-login-button" onClick={validarCodigoManual}>

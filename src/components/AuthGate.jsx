@@ -19,6 +19,7 @@ export default function AuthGate({
   const [user, setUser] = useState(undefined);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
@@ -81,14 +82,35 @@ export default function AuthGate({
             value={email}
             onChange={e => setEmail(e.target.value)}
           />
-          <input
-            type="password"
-            className="login-input staff-login-input"
-            placeholder="Contraseña"
-            autoComplete="current-password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
+          <div className="staff-password-wrap">
+            <input
+              type={mostrarPassword ? 'text' : 'password'}
+              className="login-input staff-login-input staff-password-input"
+              placeholder="Contraseña"
+              autoComplete="current-password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="staff-password-toggle"
+              onClick={() => setMostrarPassword(v => !v)}
+              aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {mostrarPassword ? (
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3.5 3.5l17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                  <path d="M10.6 5.4a10.6 10.6 0 0 1 1.4-.1c5 0 8.7 3.3 10 6.7-.5 1.3-1.3 2.6-2.4 3.7m-2.9 2.1A10.9 10.9 0 0 1 12 19.2c-5 0-8.7-3.3-10-6.7a12 12 0 0 1 3.4-4.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9.9 10a3.1 3.1 0 0 0 4.3 4.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 12.5c1.3-3.4 5-6.7 10-6.7s8.7 3.3 10 6.7c-1.3 3.4-5 6.7-10 6.7s-8.7-3.3-10-6.7Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12.5" r="3.1" stroke="currentColor" strokeWidth="1.6"/>
+                </svg>
+              )}
+            </button>
+          </div>
           {error && <div className="error-msg" style={{ display: 'block' }}>{error}</div>}
           <button type="submit" className="staff-login-button" disabled={cargando}>
             {cargando ? 'Ingresando...' : 'Ingresar'}

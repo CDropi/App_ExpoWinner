@@ -50,6 +50,12 @@ function ScannerView({ usuario, onLogout }) {
   const [detalleDia, setDetalleDia] = useState(null); // id del día abierto, o null
   const [detalleLista, setDetalleLista] = useState([]);
   const [detalleCargando, setDetalleCargando] = useState(false);
+  const [detalleDragOffset, setDetalleDragOffset] = useState(0);
+  const [detalleDragging, setDetalleDragging] = useState(false);
+  const [busquedaAsistente, setBusquedaAsistente] = useState('');
+
+  const detallePanelRef = useRef(null);
+  const detalleDragStateRef = useRef({ startY: 0, dragging: false });
 
   const readerRef = useRef(null);
   const qrRef = useRef(null);
@@ -185,6 +191,7 @@ function ScannerView({ usuario, onLogout }) {
   async function abrirDetalle(diaId) {
     setDetalleDia(diaId);
     setDetalleCargando(true);
+    setBusquedaAsistente('');
     try {
       const lista = await obtenerAsistentesIngresados(diaId);
       setDetalleLista(lista);
@@ -199,7 +206,70 @@ function ScannerView({ usuario, onLogout }) {
   function cerrarDetalle() {
     setDetalleDia(null);
     setDetalleLista([]);
+    setDetalleDragOffset(0);
+    setBusquedaAsistente('');
   }
+
+  // Arrastre para cerrar el panel de asistentes deslizándolo hacia abajo.
+  function handleDetallePointerDown(e) {
+    detalleDragStateRef.current = { startY: e.clientY, dragging: true };
+    setDetalleDragging(true);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }
+
+  function handleDetallePointerMove(e) {
+    if (!detalleDragStateRef.current.dragging) return;
+    const delta = e.clientY - detalleDragStateRef.current.startY;
+    if (delta > 0) setDetalleDragOffset(delta);
+  }
+
+  function handleDetallePointerUp() {
+    if (!detalleDragStateRef.current.dragging) return;
+    detalleDragStateRef.current.dragging = false;
+    setDetalleDragging(false);
+    const altura = detallePanelRef.current?.offsetHeight || 400;
+    if (detalleDragOffset > altura * 0.22) {
+      cerrarDetalle();
+    } else {
+      setDetalleDragOffset(0);
+    }
+  }
+
+  function escaparCampoCSV(valor) {
+    const texto = String(valor ?? '');
+    return /[",\n\r]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto;
+  }
+
+  // Genera un .csv con la lista de asistentes ya ingresados ese día y
+  // dispara su descarga directamente en el navegador del staff.
+  function descargarCSV() {
+    if (!detalleLista.length) return;
+    const etiqueta = EVENTO.dias.find(d => d.id === detalleDia)?.etiqueta || `Dia ${detalleDia}`;
+    const encabezados = ['#', 'Nombre', 'Telefono', 'Correo', 'Codigo'];
+    const filas = detalleLista.map((p, idx) => [idx + 1, p.nombre || '', p.telefono || '', p.correo || '', p.ticketCode || '']);
+    const csv = [encabezados, ...filas].map(fila => fila.map(escaparCampoCSV).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ingresos-${etiqueta.toLowerCase().replace(/\s+/g, '-')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // Filtra la lista de asistentes por nombre, código, correo o teléfono.
+  const detalleListaFiltrada = (() => {
+    const q = busquedaAsistente.trim().toLowerCase();
+    if (!q) return detalleLista;
+    return detalleLista.filter(p =>
+      (p.nombre || '').toLowerCase().includes(q) ||
+      (p.telefono || '').toLowerCase().includes(q) ||
+      (p.correo || '').toLowerCase().includes(q) ||
+      (p.ticketCode || '').toLowerCase().includes(q)
+    );
+  })();
 
   return (
     <>
@@ -225,10 +295,10 @@ function ScannerView({ usuario, onLogout }) {
           <>
             <span className="staff-result-handle" />
             <div className="staff-result-content">
+              <div className="rname">{resultado.titulo}</div>
               <div className={`staff-result-icon ${resultado.kind}`}>
                 {resultado.kind === 'ok' ? '✓' : '✕'}
-              </div>
-              <div className="rname">{resultado.titulo}</div>
+              </div>              
               <div className="rstatus">{resultado.subtitulo}</div>
               {resultado.hint && <div className="rhint">{resultado.hint}</div>}
             </div>
@@ -314,15 +384,61 @@ function ScannerView({ usuario, onLogout }) {
 
       {detalleDia && (
         <div className="staff-detalle-overlay" onClick={e => { if (e.target === e.currentTarget) cerrarDetalle(); }}>
-          <div className="staff-detalle-panel">
+          <div
+            ref={detallePanelRef}
+            className="staff-detalle-panel"
+            style={{ transform: `translateY(${detalleDragOffset}px)`, transition: detalleDragging ? 'none' : undefined }}
+            onPointerDown={handleDetallePointerDown}
+            onPointerMove={handleDetallePointerMove}
+            onPointerUp={handleDetallePointerUp}
+            onPointerCancel={handleDetallePointerUp}
+          >
+            <span className="staff-detalle-handle" />
             <div className="staff-detalle-header">
               <div>
-                <div className="staff-detalle-eyebrow">Ingresos registrados</div>
+                <div className="staff-detalle-eyebrow">Lista de Ingresos</div>
                 <div className="staff-detalle-title">
-                  {EVENTO.dias.find(d => d.id === detalleDia)?.etiqueta} · {detalleLista.length} de {contadores[detalleDia] || 0}
+                  {EVENTO.dias.find(d => d.id === detalleDia)?.etiqueta}
                 </div>
               </div>
-              <button type="button" className="staff-detalle-close" onClick={cerrarDetalle} aria-label="Cerrar">✕</button>
+              <div className="staff-detalle-total">
+                {detalleLista.length} {detalleLista.length === 1 ? 'registro' : 'registros'}
+              </div>
+            </div>
+
+            <div className="staff-detalle-toolbar">
+              <div className="staff-detalle-search">
+                <svg className="staff-detalle-search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M20 20l-3.8-3.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <input
+                  type="text"
+                  className="staff-detalle-search-input"
+                  placeholder="Buscar por nombre, código, correo o teléfono"
+                  value={busquedaAsistente}
+                  onChange={e => setBusquedaAsistente(e.target.value)}
+                />
+                {busquedaAsistente && (
+                  <button
+                    type="button"
+                    className="staff-detalle-search-clear"
+                    onClick={() => setBusquedaAsistente('')}
+                    aria-label="Limpiar búsqueda"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="staff-detalle-download"
+                onClick={descargarCSV}
+                disabled={!detalleLista.length}
+                aria-label="Descargar CSV"
+              >
+                <img src="/media/Download.svg" alt="" />
+              </button>
             </div>
 
             <div className="staff-detalle-lista">
@@ -330,12 +446,26 @@ function ScannerView({ usuario, onLogout }) {
               {!detalleCargando && detalleLista.length === 0 && (
                 <div className="staff-detalle-vacio">Todavía nadie ha ingresado este día.</div>
               )}
-              {!detalleCargando && detalleLista.map(persona => (
+              {!detalleCargando && detalleLista.length > 0 && detalleListaFiltrada.length === 0 && (
+                <div className="staff-detalle-vacio">No se encontró ningún asistente con "{busquedaAsistente}".</div>
+              )}
+              {!detalleCargando && detalleListaFiltrada.map(persona => (
                 <div key={persona.ticketCode} className="staff-detalle-item">
-                  <div className="staff-detalle-nombre">{persona.nombre || 'Sin nombre'}</div>
-                  <div className="staff-detalle-dato">📱 {persona.telefono || '—'}</div>
-                  <div className="staff-detalle-dato">✉️ {persona.correo || '—'}</div>
-                  <div className="staff-detalle-codigo">{persona.ticketCode}</div>
+                  <div className="staff-detalle-row-top">
+                    <span className="staff-detalle-nombre">{persona.nombre || 'Sin nombre'}</span>
+                    <span className="staff-detalle-codigo">{persona.ticketCode}</span>
+                  </div>
+                  <div className="staff-detalle-divider" />
+                  <div className="staff-detalle-row-bottom">
+                    <span className="staff-detalle-dato">
+                      <img className="staff-detalle-icon" src="/media/Tel.svg" alt="" />
+                      {persona.telefono || '—'}
+                    </span>
+                    <span className="staff-detalle-dato">
+                      <img className="staff-detalle-icon" src="/media/Email.svg" alt="" />
+                      {persona.correo || '—'}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

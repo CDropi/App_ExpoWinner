@@ -289,6 +289,33 @@ button:disabled{opacity:.5;cursor:default;}
   font-size: 12px;
 }
 
+/* Botón de "ver/ocultar contraseña" dentro del input de la contraseña */
+.staff-password-wrap{position:relative;}
+.staff-password-input{padding-right:46px;}
+.staff-password-toggle{
+  position:absolute;
+  top:50%;
+  right:6px;
+  transform:translateY(-50%);
+  width:32px;height:32px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.staff-password-toggle svg{width:19px;height:19px;}
+.staff-password-toggle:hover,
+.staff-password-toggle:focus,
+.staff-password-toggle:active{
+  outline:none;
+  transform:translateY(-50%);
+  color:#fff;
+}
+
 .staff-login-button{
   padding:7px 20px;
   border-radius:999px;

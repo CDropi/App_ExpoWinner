@@ -5,6 +5,7 @@ import {
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia } from '../lib/dataLayer.js';
+import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono } from '../lib/auth.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import '../styles/ingreso.css';
@@ -31,6 +32,15 @@ export default function Ingreso() {
   const [navActive, setNavActive] = useState(0);
   const navHoleX = `${navActive * 50}%`;
 
+  // ---- Paso de contraseña (teléfono ya encontrado, falta autenticar) ----
+  // 'celular' | 'crearPassword' | 'ingresarPassword'
+  const [pasoLogin, setPasoLogin] = useState('celular');
+  const [telefonoPendiente, setTelefonoPendiente] = useState('');
+  const [personaPendiente, setPersonaPendiente] = useState(null);
+  const [passwordValue, setPasswordValue] = useState('');
+  const [passwordConfirmValue, setPasswordConfirmValue] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
   const videoRef = useRef(null);
 
   // ---- Fondo de la pantalla (solo la imagen) ----
@@ -38,6 +48,14 @@ export default function Ingreso() {
     document.body.style.backgroundImage = `url("${IMAGEN_FONDO_LOGIN}")`;
     return () => { document.body.style.backgroundImage = ''; };
   }, []);
+
+  // [Ya no se usa sesión anónima: ahora el asistente se autentica con
+  // teléfono + contraseña real, ver buscarEntrada / handleCrearPassword /
+  // handleIngresarPassword más abajo. No borrar por si se necesita revertir.]
+  // useEffect(() => {
+  //   if (MODO_PRUEBA) return;
+  //   asegurarSesionAnonima().catch(err => console.error('Error iniciando sesión anónima:', err));
+  // }, []);
 
   // ---- Cortinilla de video ----
   useEffect(() => {
@@ -81,15 +99,87 @@ export default function Ingreso() {
         setErrorHtml('Este número no se encuentra <strong>registrado</strong>.<br>Verifica el número o contacta a soporte.');
         return;
       }
-      const misTickets = await obtenerTicketsDePersona(idValue);
-      setPersona(personaEncontrada);
-      setTickets(misTickets);
-      setTab('proximos');
-      // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
-      setPromoOpen(true);
+
+      if (MODO_PRUEBA) {
+        // Modo de prueba: no usa Firebase Auth, se conserva el comportamiento anterior.
+        await completarIngreso(idValue, personaEncontrada);
+        return;
+      }
+
+      // Producción: hay que autenticar con teléfono + contraseña antes de
+      // poder leer/escribir en Firestore (regla `request.auth != null`).
+      setTelefonoPendiente(idValue);
+      setPersonaPendiente(personaEncontrada);
+      const cuentaExiste = await existeCuentaParaTelefono(idValue);
+      setPasoLogin(cuentaExiste ? 'ingresarPassword' : 'crearPassword');
     } catch (err) {
       console.error(err);
       setErrorHtml('Ocurrió un error al buscar tu registro. Intenta de nuevo.');
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  // Carga los tickets y entra a la app. Se llama tanto en modo prueba (justo
+  // después de encontrar a la persona) como en producción (justo después de
+  // que la contraseña quedó validada/creada).
+  async function completarIngreso(idValue, personaEncontrada) {
+    const misTickets = await obtenerTicketsDePersona(idValue);
+    setPersona(personaEncontrada);
+    setTickets(misTickets);
+    setTab('proximos');
+    // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
+    setPromoOpen(true);
+  }
+
+  function volverAlCelular() {
+    setPasoLogin('celular');
+    setTelefonoPendiente('');
+    setPersonaPendiente(null);
+    setPasswordValue('');
+    setPasswordConfirmValue('');
+    setPasswordError('');
+  }
+
+  // Primera vez que este teléfono entra: crea su contraseña.
+  async function handleCrearPassword() {
+    setPasswordError('');
+    if (passwordValue.length < 6) {
+      setPasswordError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (passwordValue !== passwordConfirmValue) {
+      setPasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+    setBuscando(true);
+    try {
+      await crearContrasenaParaTelefono(telefonoPendiente, passwordValue);
+      await completarIngreso(telefonoPendiente, personaPendiente);
+      volverAlCelular();
+    } catch (err) {
+      console.error(err);
+      setPasswordError('No se pudo crear tu contraseña. Intenta de nuevo.');
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  // Ya tenía contraseña creada: valida e ingresa.
+  async function handleIngresarPassword() {
+    setPasswordError('');
+    if (!passwordValue) {
+      setPasswordError('Ingresa tu contraseña.');
+      return;
+    }
+    setBuscando(true);
+    try {
+      await iniciarSesionConTelefono(telefonoPendiente, passwordValue);
+      await completarIngreso(telefonoPendiente, personaPendiente);
+      volverAlCelular();
+    } catch (err) {
+      console.error(err);
+      setPasswordError('Contraseña incorrecta. Intenta de nuevo.');
     } finally {
       setBuscando(false);
     }
@@ -155,7 +245,7 @@ export default function Ingreso() {
 
       <div id="mainContent" className={introDone ? 'visible' : ''}>
 
-        {!persona && (
+        {!persona && pasoLogin === 'celular' && (
           <div className="login-card" id="loginCard">
             <h1 className="login-title">Bienvenido</h1>
             <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
@@ -185,6 +275,72 @@ export default function Ingreso() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {!persona && pasoLogin === 'crearPassword' && (
+          <div className="login-card" id="crearPasswordCard">
+            <h1 className="login-title">Crea tu contraseña</h1>
+            <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
+            <p className="login-subtitle">
+              Es la <strong>primera vez</strong> que ingresas con <strong>{telefonoPendiente}</strong>.<br />
+              Crea una contraseña para proteger tu cuenta.
+            </p>
+            <label htmlFor="pwNueva" className="sr-only">Nueva contraseña</label>
+            <input
+              id="pwNueva"
+              type="password"
+              className="login-input"
+              autoComplete="new-password"
+              placeholder="Nueva contraseña"
+              value={passwordValue}
+              onChange={e => setPasswordValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
+            />
+            <label htmlFor="pwConfirmar" className="sr-only">Confirmar contraseña</label>
+            <input
+              id="pwConfirmar"
+              type="password"
+              className="login-input"
+              autoComplete="new-password"
+              placeholder="Confirmar contraseña"
+              value={passwordConfirmValue}
+              onChange={e => setPasswordConfirmValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
+            />
+            {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
+            <button className="login-button" disabled={buscando} onClick={handleCrearPassword}>
+              {buscando ? <><span className="spinner" />Creando...</> : 'Crear contraseña y continuar'}
+            </button>
+            <div className="login-register">
+              <a href="#" onClick={e => { e.preventDefault(); volverAlCelular(); }}>← Volver</a>
+            </div>
+          </div>
+        )}
+
+        {!persona && pasoLogin === 'ingresarPassword' && (
+          <div className="login-card" id="ingresarPasswordCard">
+            <h1 className="login-title">Ingresa tu contraseña</h1>
+            <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
+            <p className="login-subtitle">Bienvenido de nuevo, <strong>{telefonoPendiente}</strong></p>
+            <label htmlFor="pwLogin" className="sr-only">Contraseña</label>
+            <input
+              id="pwLogin"
+              type="password"
+              className="login-input"
+              autoComplete="current-password"
+              placeholder="Contraseña"
+              value={passwordValue}
+              onChange={e => setPasswordValue(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleIngresarPassword(); }}
+            />
+            {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
+            <button className="login-button" disabled={buscando} onClick={handleIngresarPassword}>
+              {buscando ? <><span className="spinner" />Ingresando...</> : 'Ingresar'}
+            </button>
+            <div className="login-register">
+              <a href="#" onClick={e => { e.preventDefault(); volverAlCelular(); }}>← Volver</a>
+            </div>
           </div>
         )}
 

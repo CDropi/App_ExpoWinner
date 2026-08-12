@@ -4,7 +4,7 @@ import {
   EVENTO, MODO_PRUEBA, VIDEO_INTRO, IMAGEN_INTRO,
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
-import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia } from '../lib/dataLayer.js';
+import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia, marcarCuentaCreada } from '../lib/dataLayer.js';
 import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono } from '../lib/auth.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
@@ -108,10 +108,13 @@ export default function Ingreso() {
 
       // Producción: hay que autenticar con teléfono + contraseña antes de
       // poder leer/escribir en Firestore (regla `request.auth != null`).
+      // Se decide "crear" vs "ingresar" contraseña con el flag `tieneCuenta`
+      // que guardamos nosotros mismos en el preregistro — no le preguntamos
+      // a Firebase Authentication porque esa consulta queda inutilizada si
+      // el proyecto tiene activada la protección de enumeración de correos.
       setTelefonoPendiente(idValue);
       setPersonaPendiente(personaEncontrada);
-      const cuentaExiste = await existeCuentaParaTelefono(idValue);
-      setPasoLogin(cuentaExiste ? 'ingresarPassword' : 'crearPassword');
+      setPasoLogin(personaEncontrada.tieneCuenta ? 'ingresarPassword' : 'crearPassword');
     } catch (err) {
       console.error(err);
       setErrorHtml('Ocurrió un error al buscar tu registro. Intenta de nuevo.');
@@ -155,9 +158,22 @@ export default function Ingreso() {
     setBuscando(true);
     try {
       await crearContrasenaParaTelefono(telefonoPendiente, passwordValue);
+      await marcarCuentaCreada(telefonoPendiente);
       await completarIngreso(telefonoPendiente, personaPendiente);
       volverAlCelular();
     } catch (err) {
+      // Cuentas creadas ANTES de este cambio (como cuentas de prueba) no
+      // tienen el flag `tieneCuenta` en su preregistro todavía, así que
+      // caen aquí una sola vez. Marcamos el flag para que la próxima vez
+      // ya le salga "Ingresa tu contraseña" directamente, sin pasar por
+      // este respaldo.
+      if (err?.code === 'auth/email-already-in-use') {
+        marcarCuentaCreada(telefonoPendiente);
+        setPasswordValue('');
+        setPasswordConfirmValue('');
+        setPasoLogin('ingresarPassword');
+        return;
+      }
       console.error(err);
       setPasswordError('No se pudo crear tu contraseña. Intenta de nuevo.');
     } finally {
@@ -175,6 +191,7 @@ export default function Ingreso() {
     setBuscando(true);
     try {
       await iniciarSesionConTelefono(telefonoPendiente, passwordValue);
+      if (!personaPendiente?.tieneCuenta) marcarCuentaCreada(telefonoPendiente);
       await completarIngreso(telefonoPendiente, personaPendiente);
       volverAlCelular();
     } catch (err) {

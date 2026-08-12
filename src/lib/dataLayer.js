@@ -10,7 +10,7 @@
 // ============================================================
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
-  getFirestore, doc, getDoc, getDocs, collection, query, where,
+  getFirestore, doc, getDoc, getDocs, updateDoc, collection, query, where,
   writeBatch, runTransaction, serverTimestamp, increment
 } from "firebase/firestore";
 import { firebaseConfig, MODO_PRUEBA, EVENTO, FECHA_SIMULADA_HOY } from "../config.js";
@@ -108,6 +108,27 @@ export async function buscarPersonaPorId(idValue) {
   const db = getDb();
   const snap = await getDoc(doc(db, "preregistros", idValue));
   return snap.exists() ? { id: idValue, ...snap.data() } : null;
+}
+
+// Marca en el preregistro que esta persona ya creó su contraseña, para que
+// la próxima vez que entre le salga "Ingresa tu contraseña" en vez de
+// "Crea tu contraseña". Se usa esto en vez de preguntarle a Firebase
+// Authentication (fetchSignInMethodsForEmail) porque esa función queda
+// inutilizada si el proyecto tiene activada la protección de enumeración de
+// correos (Firebase la activa por defecto) — con esa protección activada,
+// SIEMPRE responde "no existe" aunque la cuenta sí exista.
+// No lanza error hacia afuera: si esto falla, no debe bloquear el ingreso
+// de la persona a la app, solo se pierde la comodidad de saltar el paso
+// de detección la próxima vez (hay un respaldo para ese caso, ver
+// handleCrearPassword en Ingreso.jsx).
+export async function marcarCuentaCreada(idValue) {
+  if (MODO_PRUEBA) return;
+  try {
+    const db = getDb();
+    await updateDoc(doc(db, "preregistros", idValue), { tieneCuenta: true });
+  } catch (err) {
+    console.error('No se pudo marcar tieneCuenta (no bloqueante):', err);
+  }
 }
 
 // Devuelve los tickets ya elegidos por esta persona (0, 1 o 2)

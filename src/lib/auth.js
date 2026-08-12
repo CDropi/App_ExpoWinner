@@ -5,6 +5,7 @@ import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail, signInAnonymously, signOut, onAuthStateChanged
 } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { firebaseConfig } from "../config.js";
 
 let _auth = null;
@@ -80,4 +81,30 @@ export async function iniciarSesionConTelefono(telefono, password) {
   const auth = getFirebaseAuth();
   const cred = await signInWithEmailAndPassword(auth, telefonoAEmail(telefono), password);
   return cred.user;
+}
+
+// ============================================================
+// "Olvidé mi contraseña" — autoservicio.
+//
+// No podemos usar el reset nativo de Firebase (sendPasswordResetEmail)
+// porque mandaría el link al correo FALSO (celular@expowinners.app), que
+// no existe. En su lugar, una Cloud Function (solicitarResetContrasena)
+// busca el correo REAL en `preregistros` y manda el link ahí.
+//
+// La persona solo da su celular — nunca escribe su correo, ya lo tenemos
+// guardado. La función siempre responde con el mismo mensaje genérico
+// (exista o no la cuenta) para no revelar qué números están registrados.
+// ============================================================
+let _functions = null;
+function getCloudFunctions() {
+  if (_functions) return _functions;
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  _functions = getFunctions(app);
+  return _functions;
+}
+
+export async function solicitarResetContrasena(telefono) {
+  const fn = httpsCallable(getCloudFunctions(), "solicitarResetContrasena");
+  const res = await fn({ telefono });
+  return res.data; // { ok: true, mensaje: "..." }
 }

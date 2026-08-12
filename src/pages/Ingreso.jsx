@@ -5,7 +5,7 @@ import {
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia, marcarCuentaCreada } from '../lib/dataLayer.js';
-import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono } from '../lib/auth.js';
+import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena } from '../lib/auth.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import '../styles/ingreso.css';
@@ -40,6 +40,9 @@ export default function Ingreso() {
   const [passwordValue, setPasswordValue] = useState('');
   const [passwordConfirmValue, setPasswordConfirmValue] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [resetMensaje, setResetMensaje] = useState('');
+  const [resetEnviando, setResetEnviando] = useState(false);
 
   const videoRef = useRef(null);
 
@@ -142,6 +145,8 @@ export default function Ingreso() {
     setPasswordValue('');
     setPasswordConfirmValue('');
     setPasswordError('');
+    setMostrarPassword(false);
+    setResetMensaje('');
   }
 
   // Primera vez que este teléfono entra: crea su contraseña.
@@ -199,6 +204,26 @@ export default function Ingreso() {
       setPasswordError('Contraseña incorrecta. Intenta de nuevo.');
     } finally {
       setBuscando(false);
+    }
+  }
+
+  // "¿Olvidaste tu contraseña?" — solo pide confirmar, nunca vuelve a pedir
+  // el correo (ya lo tenemos en preregistros). La Cloud Function siempre
+  // responde el mismo mensaje genérico, exista o no la cuenta, para no
+  // revelar qué números están registrados.
+  async function handleOlvidoPassword() {
+    setPasswordError('');
+    setResetMensaje('');
+    setResetEnviando(true);
+    try {
+      const res = await solicitarResetContrasena(telefonoPendiente);
+      setResetMensaje(res?.mensaje || 'Si tu número está registrado, te enviamos instrucciones a tu correo.');
+    } catch (err) {
+      console.error(err);
+      // Aun si la función falla, no revelamos detalles del error.
+      setResetMensaje('Si tu número está registrado, te enviamos instrucciones a tu correo.');
+    } finally {
+      setResetEnviando(false);
     }
   }
 
@@ -304,27 +329,47 @@ export default function Ingreso() {
               Crea una contraseña para proteger tu cuenta.
             </p>
             <label htmlFor="pwNueva" className="sr-only">Nueva contraseña</label>
-            <input
-              id="pwNueva"
-              type="password"
-              className="login-input"
-              autoComplete="new-password"
-              placeholder="Nueva contraseña"
-              value={passwordValue}
-              onChange={e => setPasswordValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
-            />
+            <div className="staff-password-wrap">
+              <input
+                id="pwNueva"
+                type={mostrarPassword ? 'text' : 'password'}
+                className="login-input staff-password-input"
+                autoComplete="new-password"
+                placeholder="Nueva contraseña"
+                value={passwordValue}
+                onChange={e => setPasswordValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
+              />
+              <button
+                type="button"
+                className="staff-password-toggle"
+                onClick={() => setMostrarPassword(v => !v)}
+                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
+              </button>
+            </div>
             <label htmlFor="pwConfirmar" className="sr-only">Confirmar contraseña</label>
-            <input
-              id="pwConfirmar"
-              type="password"
-              className="login-input"
-              autoComplete="new-password"
-              placeholder="Confirmar contraseña"
-              value={passwordConfirmValue}
-              onChange={e => setPasswordConfirmValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
-            />
+            <div className="staff-password-wrap">
+              <input
+                id="pwConfirmar"
+                type={mostrarPassword ? 'text' : 'password'}
+                className="login-input staff-password-input"
+                autoComplete="new-password"
+                placeholder="Confirmar contraseña"
+                value={passwordConfirmValue}
+                onChange={e => setPasswordConfirmValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
+              />
+              <button
+                type="button"
+                className="staff-password-toggle"
+                onClick={() => setMostrarPassword(v => !v)}
+                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
+              </button>
+            </div>
             {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
             <button className="login-button" disabled={buscando} onClick={handleCrearPassword}>
               {buscando ? <><span className="spinner" />Creando...</> : 'Crear contraseña y continuar'}
@@ -341,22 +386,37 @@ export default function Ingreso() {
             <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
             <p className="login-subtitle">Bienvenido de nuevo, <strong>{telefonoPendiente}</strong></p>
             <label htmlFor="pwLogin" className="sr-only">Contraseña</label>
-            <input
-              id="pwLogin"
-              type="password"
-              className="login-input"
-              autoComplete="current-password"
-              placeholder="Contraseña"
-              value={passwordValue}
-              onChange={e => setPasswordValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleIngresarPassword(); }}
-            />
+            <div className="staff-password-wrap">
+              <input
+                id="pwLogin"
+                type={mostrarPassword ? 'text' : 'password'}
+                className="login-input staff-password-input"
+                autoComplete="current-password"
+                placeholder="Contraseña"
+                value={passwordValue}
+                onChange={e => setPasswordValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleIngresarPassword(); }}
+              />
+              <button
+                type="button"
+                className="staff-password-toggle"
+                onClick={() => setMostrarPassword(v => !v)}
+                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
+              </button>
+            </div>
             {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
+            {resetMensaje && <div className="login-register" style={{ display: 'block' }}>{resetMensaje}</div>}
             <button className="login-button" disabled={buscando} onClick={handleIngresarPassword}>
               {buscando ? <><span className="spinner" />Ingresando...</> : 'Ingresar'}
             </button>
             <div className="login-register">
               <a href="#" onClick={e => { e.preventDefault(); volverAlCelular(); }}>← Volver</a>
+              {' · '}
+              <a href="#" onClick={e => { e.preventDefault(); handleOlvidoPassword(); }}>
+                {resetEnviando ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+              </a>
             </div>
           </div>
         )}

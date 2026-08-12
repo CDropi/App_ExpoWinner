@@ -186,15 +186,14 @@ button:disabled{opacity:.5;cursor:default;}
 /* Botón de "volver" con el mismo lenguaje visual (vidrio líquido) que el
    logout de Staff — círculo translúcido con blur, esquina superior
    izquierda de la tarjeta. */
-/* Fila propia arriba de la tarjeta, alineada a la izquierda — el botón ya
-   no flota sobre el título, ocupa su propio espacio. */
-.ingreso-volver-row{
-  display:flex;
-  justify-content:flex-start;
-  margin-bottom:12px;
-}
-
+/* Botón de "volver" fijo en la esquina superior izquierda de la pantalla
+   (no dentro de la tarjeta) — mismo lenguaje visual (vidrio líquido) que
+   el logout de Staff. */
 .ingreso-volver-btn{
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
   width:40px;height:40px;
   margin:0;
   padding:0;

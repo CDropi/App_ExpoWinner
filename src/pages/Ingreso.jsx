@@ -287,6 +287,17 @@ export default function Ingreso() {
 
       <div id="mainContent" className={introDone ? 'visible' : ''}>
 
+        {!persona && (pasoLogin === 'crearPassword' || pasoLogin === 'ingresarPassword') && (
+          <button
+            type="button"
+            className="ingreso-volver-btn"
+            onClick={volverAlCelular}
+            aria-label="Volver"
+          >
+            <img src="/media/Volver.svg" alt="" />
+          </button>
+        )}
+
         {!persona && pasoLogin === 'celular' && (
           <div className="login-card" id="loginCard">
             <h1 className="login-title">Bienvenido</h1>
@@ -322,16 +333,6 @@ export default function Ingreso() {
 
         {!persona && pasoLogin === 'crearPassword' && (
           <div className="login-card" id="crearPasswordCard">
-            <div className="ingreso-volver-row">
-              <button
-                type="button"
-                className="ingreso-volver-btn"
-                onClick={volverAlCelular}
-                aria-label="Volver"
-              >
-                <img src="/media/Volver.svg" alt="" />
-              </button>
-            </div>
             <h1 className="login-title">Crea tu contraseña</h1>
             <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
             <p className="login-subtitle">
@@ -389,16 +390,6 @@ export default function Ingreso() {
 
         {!persona && pasoLogin === 'ingresarPassword' && (
           <div className="login-card" id="ingresarPasswordCard">
-            <div className="ingreso-volver-row">
-              <button
-                type="button"
-                className="ingreso-volver-btn"
-                onClick={volverAlCelular}
-                aria-label="Volver"
-              >
-                <img src="/media/Volver.svg" alt="" />
-              </button>
-            </div>
             <h1 className="login-title">Ingresa tu contraseña</h1>
             <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
             <p className="login-subtitle">Bienvenido de nuevo, <strong>{telefonoPendiente}</strong></p>

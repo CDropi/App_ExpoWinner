@@ -169,12 +169,18 @@ button:disabled{opacity:.5;cursor:default;}
   max-width:380px;
   text-align:center;
 }
+
+.login-card#ingresarPasswordCard{
+  width: 80%;
+}
+
 .login-title{
   font-family:'Tusker';
   font-size:50px;
   letter-spacing:.04em;
   text-transform:uppercase;
-  margin: 0;
+  margin: 0 0 10px;
+  line-height: 1.1em;
 }
 
 /* ---- Ajustes para celulares muy angostos (~360px, comunes en Android

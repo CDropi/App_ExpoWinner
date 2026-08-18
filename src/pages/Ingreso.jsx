@@ -400,7 +400,6 @@ export default function Ingreso() {
                 type={mostrarPassword ? 'text' : 'password'}
                 className="login-input staff-password-input"
                 autoComplete="current-password"
-                placeholder="Contraseña"
                 value={passwordValue}
                 onChange={e => setPasswordValue(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleIngresarPassword(); }}

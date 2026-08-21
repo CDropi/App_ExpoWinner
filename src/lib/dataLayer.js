@@ -13,6 +13,7 @@ import {
   getFirestore, doc, getDoc, getDocs, updateDoc, collection, query, where,
   writeBatch, runTransaction, serverTimestamp, increment
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { firebaseConfig, MODO_PRUEBA, EVENTO, FECHA_SIMULADA_HOY } from "../config.js";
 import { personasIniciales, ticketsIniciales } from "./mockData.js";
 
@@ -124,6 +125,18 @@ export async function buscarPersonaPorId(idValue) {
 export async function marcarCuentaCreada(idValue) {
   if (MODO_PRUEBA) return;
   try {
+    // --- DIAGNÓSTICO TEMPORAL: quitar una vez resuelto el problema de tieneCuenta ---
+    const auth = getAuth();
+    const emailSesionActual = auth.currentUser?.email;
+    const emailEsperadoPorLaRegla = `${idValue}@expowinners.app`;
+    console.log('[DIAGNÓSTICO tieneCuenta]', {
+      idValue,
+      emailSesionActual,
+      emailEsperadoPorLaRegla,
+      coinciden: emailSesionActual === emailEsperadoPorLaRegla,
+    });
+    // --- fin diagnóstico ---
+
     const db = getDb();
     await updateDoc(doc(db, "preregistros", idValue), { tieneCuenta: true });
   } catch (err) {

@@ -581,7 +581,7 @@ function SeccionNoDisponible() {
       <h2 className="snd-title">        
         <span className="snd-title-l1">ESTA SECCIÓN</span>
         <span className="snd-title-l2">SE ACTIVARÁ CUANDO</span>
-        <span className="snd-title-l3">INICIE EXPO WINNERS</span> 
+        <span className="snd-title-l3">INICIE EXPOWINNERS</span> 
       </h2>
       <div className="snd-icon">
         <img src="/media/Codi.png" alt=""/>;

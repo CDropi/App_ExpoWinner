@@ -170,6 +170,12 @@ button:disabled{opacity:.5;cursor:default;}
   text-align:center;
 }
 
+.login-card#restablecerCard{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .visible#mainContent{
   display: flex;
   justify-content: center;
@@ -234,6 +240,10 @@ button:disabled{opacity:.5;cursor:default;}
   line-height: 1.1em;
 }
 
+#restablecerCard .login-title {
+  margin-bottom: 30px;
+}
+
 /* ---- Ajustes para celulares muy angostos (~360px, comunes en Android
    de gama baja/media) — evita que los títulos grandes se desborden ---- */
 @media (max-width:380px){
@@ -248,6 +258,10 @@ button:disabled{opacity:.5;cursor:default;}
   display:block;
 }
 
+#restablecerCard .login-logo {
+  margin-bottom: 30px;
+}
+
 .login-logo-Staff {
   width:200px;
   object-fit:contain;
@@ -259,7 +273,17 @@ button:disabled{opacity:.5;cursor:default;}
   color:var(--paper);
   margin:0 0 14px;
 }
+
 .login-subtitle strong{font-weight:700;}
+
+#restablecerCard .login-subtitle { 
+  width: 80%;
+  font-size: 12px;
+}
+
+#restablecerCard .login-subtitle strong{ 
+  font-size: 15px;
+}
 
 .login-input{
   display: block;
@@ -379,6 +403,10 @@ button:disabled{opacity:.5;cursor:default;}
   background:transparent;
 }
 
+#restablecerCard .staff-password-toggle { 
+  top:38%;
+}
+
 .staff-login-button{
   padding:7px 20px;
   border-radius:999px;
@@ -404,4 +432,15 @@ button:disabled{opacity:.5;cursor:default;}
   display:flex;
   align-items:center;
   justify-content:center;
+}
+
+/* Botón de "cerrar sesión" del asistente (reusa .staff-logout de
+   staff.css) — fijo en la esquina superior derecha, espejo del botón de
+   "Volver" que ya está fijo a la izquierda. Solo se muestra dentro del
+   app-shell, cuando ya hay una persona con sesión iniciada. */
+.staff-logout.app-logout-btn{
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
 }

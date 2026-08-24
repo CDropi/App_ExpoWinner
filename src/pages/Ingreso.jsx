@@ -5,10 +5,11 @@ import {
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia, marcarCuentaCreada } from '../lib/dataLayer.js';
-import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena } from '../lib/auth.js';
+import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena, logoutStaff } from '../lib/auth.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import '../styles/ingreso.css';
+import '../styles/staff.css'; // reusa .staff-logout para el botón de cerrar sesión del asistente
 
 const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
 
@@ -147,6 +148,25 @@ export default function Ingreso() {
     setPasswordError('');
     setMostrarPassword(false);
     setResetMensaje('');
+  }
+
+  // Cierra la sesión de Firebase (misma función que usa Staff, es genérica)
+  // y resetea todo el estado local para volver a la pantalla de celular,
+  // como si el asistente nunca hubiera entrado.
+  async function handleCerrarSesion() {
+    try {
+      await logoutStaff();
+    } catch (err) {
+      console.error('Error cerrando sesión:', err);
+    }
+    setPersona(null);
+    setTickets([]);
+    setDocValue('');
+    setTab('proximos');
+    setNavActive(0);
+    setPromoOpen(false);
+    setTicketModal(null);
+    volverAlCelular();
   }
 
   // Primera vez que este teléfono entra: crea su contraseña.
@@ -429,6 +449,16 @@ export default function Ingreso() {
 
         {persona && (
           <div className="app-shell">
+            {navActive !== 2 && (
+              <button
+                type="button"
+                className="staff-logout app-logout-btn"
+                onClick={handleCerrarSesion}
+                aria-label="Cerrar sesión"
+              >
+                <img src="/media/LogOut.svg" alt="" />
+              </button>
+            )}
             <div className="app-scroll">
               {navActive === 0 && (
                 <>

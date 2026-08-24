@@ -9,7 +9,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { firebaseConfig } from "../config.js";
 
 let _auth = null;
-function getFirebaseAuth() {
+export function getFirebaseAuth() {
   if (_auth) return _auth;
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   _auth = getAuth(app);

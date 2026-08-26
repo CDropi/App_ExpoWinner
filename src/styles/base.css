@@ -1,6 +1,6 @@
 /* ============================================================
    base.css — variables de diseño y componentes compartidos entre
-   ingreso.html, staff.html y admin.html.
+   ingreso.html y staff.html.
    ============================================================ */
 
 /* ---- Tipografía personalizada: Tusker (títulos) ----
@@ -91,18 +91,6 @@ button:disabled{opacity:.5;cursor:default;}
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ---- Aviso de modo prueba ---- */
-.test-banner{
-  background:rgba(232,178,61,.12);
-  border:1px solid rgba(232,178,61,.35);
-  color:var(--gold);
-  font-family:'JetBrains Mono',monospace;
-  font-size:11.5px;
-  letter-spacing:.04em;
-  padding:10px 14px;
-  border-radius:10px;
-  text-align:center;
-}
 
 /* ---- Pantalla de bloqueo: solo se puede usar desde celular ---- */
 .solo-mobil{
@@ -163,7 +151,7 @@ button:disabled{opacity:.5;cursor:default;}
   z-index:0;
 }
 
-/* ---- Login compartido (público en Ingreso, y AuthGate en Staff/Admin) ---- */
+/* ---- Login compartido (público en Ingreso, y AuthGate en Staff) ---- */
 .login-card{
   width:100%;
   max-width:380px;
@@ -346,7 +334,7 @@ button:disabled{opacity:.5;cursor:default;}
 }
 .error-msg strong{font-weight:700;}
 
-/* ---- AuthGate: login por correo/contraseña (Staff y Admin) ---- */
+/* ---- AuthGate: login por correo/contraseña (Staff) ---- */
 .staff-login-card{
   padding:32px 18px;
 }

@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  EVENTO, MODO_PRUEBA, VIDEO_INTRO, IMAGEN_INTRO,
+  EVENTO, VIDEO_INTRO, IMAGEN_INTRO,
   IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
 } from '../config.js';
 import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia, marcarCuentaCreada } from '../lib/dataLayer.js';
-import { existeCuentaParaTelefono, crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena, logoutStaff } from '../lib/auth.js';
+import { crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena, logoutStaff } from '../lib/auth.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import '../styles/ingreso.css';
 import '../styles/staff.css'; // reusa .staff-logout para el botón de cerrar sesión del asistente
-
-const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
 
 const NAV_ITEMS = [
   { key: 'tickets', label: 'Tickets', icon: '/media/Tickets.svg', iconActivo: '/media/Tickets_2.svg' },
@@ -52,14 +50,6 @@ export default function Ingreso() {
     document.body.style.backgroundImage = `url("${IMAGEN_FONDO_LOGIN}")`;
     return () => { document.body.style.backgroundImage = ''; };
   }, []);
-
-  // [Ya no se usa sesión anónima: ahora el asistente se autentica con
-  // teléfono + contraseña real, ver buscarEntrada / handleCrearPassword /
-  // handleIngresarPassword más abajo. No borrar por si se necesita revertir.]
-  // useEffect(() => {
-  //   if (MODO_PRUEBA) return;
-  //   asegurarSesionAnonima().catch(err => console.error('Error iniciando sesión anónima:', err));
-  // }, []);
 
   // ---- Cortinilla de video ----
   useEffect(() => {
@@ -104,14 +94,8 @@ export default function Ingreso() {
         return;
       }
 
-      if (MODO_PRUEBA) {
-        // Modo de prueba: no usa Firebase Auth, se conserva el comportamiento anterior.
-        await completarIngreso(idValue, personaEncontrada);
-        return;
-      }
-
-      // Producción: hay que autenticar con teléfono + contraseña antes de
-      // poder leer/escribir en Firestore (regla `request.auth != null`).
+      // Hay que autenticar con teléfono + contraseña antes de poder
+      // leer/escribir en Firestore (regla `request.auth != null`).
       // Se decide "crear" vs "ingresar" contraseña con el flag `tieneCuenta`
       // que guardamos nosotros mismos en el preregistro — no le preguntamos
       // a Firebase Authentication porque esa consulta queda inutilizada si
@@ -127,16 +111,14 @@ export default function Ingreso() {
     }
   }
 
-  // Carga los tickets y entra a la app. Se llama tanto en modo prueba (justo
-  // después de encontrar a la persona) como en producción (justo después de
-  // que la contraseña quedó validada/creada).
+  // Carga los tickets y entra a la app, justo después de que la
+  // contraseña quedó validada o creada.
   async function completarIngreso(idValue, personaEncontrada) {
     const misTickets = await obtenerTicketsDePersona(idValue);
     setPersona(personaEncontrada);
     setTickets(misTickets);
     setTab('proximos');
-    // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
-    setPromoOpen(true);
+    setPromoOpen(true); // muestra el popup promocional (IMAGEN_POPUP_PROMO) al entrar
   }
 
   function volverAlCelular() {
@@ -341,13 +323,6 @@ export default function Ingreso() {
               ¿Aún no tienes una cuenta? <br />
               <a href={URL_REGISTRO_LANDING} target="_blank" rel="noopener noreferrer">Regístrate aquí</a>
             </div>
-            {MODO_PRUEBA && (
-              <div className="test-ids" style={{ display: 'flex' }}>
-                {TEST_IDS.map(id => (
-                  <button key={id} type="button" onClick={() => { setDocValue(id); buscarEntrada(id); }}>{id}</button>
-                ))}
-              </div>
-            )}
           </div>
         )}
 

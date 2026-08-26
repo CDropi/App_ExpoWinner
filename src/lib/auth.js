@@ -1,4 +1,4 @@
-// auth.js — Login de staff/admin (correo + contraseña).
+// auth.js — Login de staff (correo + contraseña).
 // No toca el login público de "Ingreso" (ese sigue siendo por teléfono).
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {

@@ -1,21 +1,18 @@
 // ============================================================
-// Capa de datos. Todas las páginas (Ingreso, Staff, Admin) llaman
-// SOLO a estas funciones. Internamente decide si usar datos de
-// ejemplo (localStorage) o Firebase real, según MODO_PRUEBA.
+// Capa de datos. Todas las páginas (Ingreso, Staff) llaman
+// SOLO a estas funciones — nunca a Firestore directamente.
 //
 // Modelo:
-//   - "preregistros": gente registrada (viene de la landing / admin)
+//   - "preregistros": gente registrada (viene de la landing pública)
 //   - "tickets": una entrada por persona por día elegido (se crea
 //     cuando la persona elige ese día en Ingreso)
 // ============================================================
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getFirestore, doc, getDoc, getDocs, updateDoc, collection, query, where,
-  writeBatch, runTransaction, serverTimestamp, increment
+  runTransaction, serverTimestamp, increment
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { firebaseConfig, MODO_PRUEBA, EVENTO, FECHA_SIMULADA_HOY } from "../config.js";
-import { personasIniciales, ticketsIniciales } from "./mockData.js";
+import { firebaseConfig, EVENTO, FECHA_SIMULADA_HOY } from "../config.js";
 
 const MESES = { ENE:0, FEB:1, MAR:2, ABR:3, MAY:4, JUN:5, JUL:6, AGO:7, SEP:8, OCT:9, NOV:10, DIC:11 };
 
@@ -46,10 +43,6 @@ function diaCoincideConHoy(diaId) {
   return esMismoDiaCalendario(fecha, hoy());
 }
 
-const LS_PERSONAS = "mock_personas_v2";
-const LS_TICKETS = "mock_tickets_v2";
-const LS_STATS = "mock_stats_v2";
-
 let _db = null;
 function getDb() {
   if (_db) return _db;
@@ -57,31 +50,6 @@ function getDb() {
   _db = getFirestore(app);
   return _db;
 }
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ---- almacenamiento de prueba (localStorage) ----
-function leerPersonas() {
-  const raw = localStorage.getItem(LS_PERSONAS);
-  if (raw) return JSON.parse(raw);
-  localStorage.setItem(LS_PERSONAS, JSON.stringify(personasIniciales));
-  return JSON.parse(JSON.stringify(personasIniciales));
-}
-function guardarPersonas(list) { localStorage.setItem(LS_PERSONAS, JSON.stringify(list)); }
-
-function leerTickets() {
-  const raw = localStorage.getItem(LS_TICKETS);
-  if (raw) return JSON.parse(raw);
-  localStorage.setItem(LS_TICKETS, JSON.stringify(ticketsIniciales));
-  return JSON.parse(JSON.stringify(ticketsIniciales));
-}
-function guardarTickets(list) { localStorage.setItem(LS_TICKETS, JSON.stringify(list)); }
-
-function leerStats() {
-  const raw = localStorage.getItem(LS_STATS);
-  return raw ? JSON.parse(raw) : { count: 0, count_dia1: 0, count_dia2: 0 };
-}
-function guardarStats(s) { localStorage.setItem(LS_STATS, JSON.stringify(s)); }
 
 function generarCodigo(usados) {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // sin 0,O,1,I,L
@@ -101,11 +69,6 @@ function generarCodigo(usados) {
 // ---- Ingreso ----
 
 export async function buscarPersonaPorId(idValue) {
-  if (MODO_PRUEBA) {
-    await delay(350);
-    const list = leerPersonas();
-    return list.find(p => p.id === idValue) || null;
-  }
   const db = getDb();
   const snap = await getDoc(doc(db, "preregistros", idValue));
   return snap.exists() ? { id: idValue, ...snap.data() } : null;
@@ -123,20 +86,7 @@ export async function buscarPersonaPorId(idValue) {
 // de detección la próxima vez (hay un respaldo para ese caso, ver
 // handleCrearPassword en Ingreso.jsx).
 export async function marcarCuentaCreada(idValue) {
-  if (MODO_PRUEBA) return;
   try {
-    // --- DIAGNÓSTICO TEMPORAL: quitar una vez resuelto el problema de tieneCuenta ---
-    const auth = getAuth();
-    const emailSesionActual = auth.currentUser?.email;
-    const emailEsperadoPorLaRegla = `${idValue}@expowinners.app`;
-    console.log('[DIAGNÓSTICO tieneCuenta]', {
-      idValue,
-      emailSesionActual,
-      emailEsperadoPorLaRegla,
-      coinciden: emailSesionActual === emailEsperadoPorLaRegla,
-    });
-    // --- fin diagnóstico ---
-
     const db = getDb();
     await updateDoc(doc(db, "preregistros", idValue), { tieneCuenta: true });
   } catch (err) {
@@ -146,10 +96,6 @@ export async function marcarCuentaCreada(idValue) {
 
 // Devuelve los tickets ya elegidos por esta persona (0, 1 o 2)
 export async function obtenerTicketsDePersona(idValue) {
-  if (MODO_PRUEBA) {
-    await delay(200);
-    return leerTickets().filter(t => t.personId === idValue);
-  }
   const db = getDb();
   const q = query(collection(db, "tickets"), where("personId", "==", idValue));
   const snap = await getDocs(q);
@@ -159,26 +105,6 @@ export async function obtenerTicketsDePersona(idValue) {
 // Crea la entrada para un día si no existe todavía. Si ya existe, devuelve la existente
 // (evita duplicados si la persona hace doble clic o vuelve a entrar).
 export async function elegirDia(idValue, nombre, diaId) {
-  if (MODO_PRUEBA) {
-    await delay(300);
-    const tickets = leerTickets();
-    const existente = tickets.find(t => t.personId === idValue && t.dia === diaId);
-    if (existente) return existente;
-
-    const usados = new Set(tickets.map(t => t.ticketCode));
-    const nuevo = {
-      ticketCode: generarCodigo(usados),
-      personId: idValue,
-      nombre,
-      dia: diaId,
-      checkedIn: false,
-      checkedInAt: null
-    };
-    tickets.push(nuevo);
-    guardarTickets(tickets);
-    return nuevo;
-  }
-
   const db = getDb();
   const indexRef = doc(db, "ticketIndex", `${idValue}_dia${diaId}`);
 
@@ -201,25 +127,6 @@ export async function elegirDia(idValue, nombre, diaId) {
 // ---- Staff ----
 
 export async function procesarCheckin(ticketCode) {
-  if (MODO_PRUEBA) {
-    await delay(250);
-    const tickets = leerTickets();
-    const idx = tickets.findIndex(t => t.ticketCode === ticketCode);
-    if (idx === -1) return { ok: false, reason: "not_found" };
-    if (tickets[idx].checkedIn) return { ok: false, reason: "already_used", data: tickets[idx] };
-    tickets[idx].checkedIn = true;
-    tickets[idx].checkedInAt = new Date().toISOString();
-    guardarTickets(tickets);
-
-    const stats = leerStats();
-    stats.count = (stats.count || 0) + 1;
-    const key = `count_dia${tickets[idx].dia}`;
-    stats[key] = (stats[key] || 0) + 1;
-    guardarStats(stats);
-
-    return { ok: true, data: tickets[idx] };
-  }
-
   const db = getDb();
   const ref = doc(db, "tickets", ticketCode);
   return await runTransaction(db, async (tx) => {
@@ -236,7 +143,6 @@ export async function procesarCheckin(ticketCode) {
 }
 
 export async function obtenerContador() {
-  if (MODO_PRUEBA) return leerStats().count || 0;
   const db = getDb();
   const snap = await getDoc(doc(db, "stats", "checkins"));
   return snap.exists() ? (snap.data().count || 0) : 0;
@@ -244,12 +150,6 @@ export async function obtenerContador() {
 
 // Conteo de ingresos separado por día: { 1: n, 2: n, ... }
 export async function obtenerContadoresPorDia() {
-  if (MODO_PRUEBA) {
-    const stats = leerStats();
-    const resultado = {};
-    for (const dia of EVENTO.dias) resultado[dia.id] = stats[`count_dia${dia.id}`] || 0;
-    return resultado;
-  }
   const db = getDb();
   const snap = await getDoc(doc(db, "stats", "checkins"));
   const data = snap.exists() ? snap.data() : {};
@@ -261,19 +161,14 @@ export async function obtenerContadoresPorDia() {
 // Lista de personas que YA ingresaron en un día puntual, con su nombre,
 // teléfono, correo (cruzando con preregistros) y el código de su ticket.
 export async function obtenerAsistentesIngresados(diaId) {
-  let ticketsDelDia;
-  if (MODO_PRUEBA) {
-    ticketsDelDia = leerTickets().filter(t => t.dia === diaId && t.checkedIn);
-  } else {
-    const db = getDb();
-    const q = query(
-      collection(db, "tickets"),
-      where("dia", "==", diaId),
-      where("checkedIn", "==", true)
-    );
-    const snap = await getDocs(q);
-    ticketsDelDia = snap.docs.map(d => ({ ticketCode: d.id, ...d.data() }));
-  }
+  const db = getDb();
+  const q = query(
+    collection(db, "tickets"),
+    where("dia", "==", diaId),
+    where("checkedIn", "==", true)
+  );
+  const snap = await getDocs(q);
+  const ticketsDelDia = snap.docs.map(d => ({ ticketCode: d.id, ...d.data() }));
 
   // Cruza cada ticket con su preregistro para sacar el correo.
   const conCorreo = await Promise.all(
@@ -296,57 +191,4 @@ export async function obtenerAsistentesIngresados(diaId) {
   );
 
   return conCorreo;
-}
-
-// ---- Admin ----
-
-// rows: [{id, nombre, correo}], onProgress: (subidos, total) => void
-// "id" aquí es el número de teléfono (así lo identifica preregistros).
-// Registra personas elegibles. NO crea tickets todavía (eso pasa cuando cada
-// persona elige su día en Ingreso).
-export async function cargarPersonas(rows, onProgress) {
-  if (MODO_PRUEBA) {
-    const list = leerPersonas();
-    const CHUNK = 200;
-    for (let i = 0; i < rows.length; i += CHUNK) {
-      const chunk = rows.slice(i, i + CHUNK);
-      chunk.forEach(row => list.push({ id: row.id, nombre: row.nombre, correo: row.correo }));
-      await delay(120);
-      if (onProgress) onProgress(Math.min(i + CHUNK, rows.length), rows.length);
-    }
-    guardarPersonas(list);
-    return rows;
-  }
-
-  const db = getDb();
-  const CHUNK = 450;
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const chunk = rows.slice(i, i + CHUNK);
-    const batch = writeBatch(db);
-    chunk.forEach(row => {
-      const ref = doc(db, "preregistros", row.id);
-      batch.set(ref, { nombre: row.nombre, correo: row.correo });
-    });
-    await batch.commit();
-    if (onProgress) onProgress(Math.min(i + CHUNK, rows.length), rows.length);
-  }
-  return rows;
-}
-
-// Solo tiene efecto en modo prueba: borra los datos de ejemplo guardados en el navegador
-export function reiniciarDatosDePrueba() {
-  localStorage.removeItem(LS_PERSONAS);
-  localStorage.removeItem(LS_TICKETS);
-  localStorage.removeItem(LS_STATS);
-}
-
-// Trae TODOS los tickets generados hasta ahora (para el reporte de asistencia en Admin)
-export async function obtenerTodosLosTickets() {
-  if (MODO_PRUEBA) {
-    await delay(200);
-    return leerTickets();
-  }
-  const db = getDb();
-  const snap = await getDocs(collection(db, "tickets"));
-  return snap.docs.map(d => ({ ticketCode: d.id, ...d.data() }));
 }

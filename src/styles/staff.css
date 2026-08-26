@@ -642,7 +642,7 @@ body{
 #flash.ok{background:rgba(47,174,92,.35);}
 #flash.bad{background:rgba(224,71,62,.35);}
 
-.test-banner{margin-bottom:8px;flex-shrink:0;font-size:11px;}
+
 
 /* Sección de validación manual */
 #manualTest{margin-top:0;flex-shrink:0;}

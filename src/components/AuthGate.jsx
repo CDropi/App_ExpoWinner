@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { loginStaff, onStaffAuthChange, logoutStaff } from '../lib/auth.js';
 import { LOGO_LOGIN, IMAGEN_FONDO_LOGIN, LOGO_LOGIN_STAFF } from '../config.js';
 
-// Envuelve cualquier pantalla (Staff, Admin) y exige una sesión real de
-// Firebase Auth (correo + contraseña) antes de mostrar el contenido.
+// Envuelve cualquier pantalla (por ahora, solo Staff) y exige una sesión
+// real de Firebase Auth (correo + contraseña) antes de mostrar el contenido.
 //
 // Uso:
 //   <AuthGate contexto="Staff" descripcion="Valida el ingreso de los asistentes." footerDestino="acceder al sistema de escaneo.">

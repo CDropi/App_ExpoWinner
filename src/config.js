@@ -2,12 +2,6 @@
 // CONFIGURACIÓN — edita estos valores antes de publicar
 // ============================================================
 
-// 0) MODO PRUEBA: mientras esto sea `true`, la app usa datos de ejemplo
-//    guardados en el navegador (localStorage) en vez de Firebase.
-//    Cuando tengas tu base de datos lista, cambia esto a `false`
-//    y llena el firebaseConfig de abajo. No necesitas tocar nada más.
-export const MODO_PRUEBA = false;
-
 // 1) Pega aquí la config de tu proyecto Firebase
 //    (Firebase Console → Configuración del proyecto → Tus apps → Config)
 export const firebaseConfig = {
@@ -55,11 +49,6 @@ export const LOGO_LOGIN_STAFF = "/media/Logo_ExpoWinner_Horizontal.png";
 
 // 2.6) URL de tu landing donde las personas se registran (usada en "Regístrate aquí").
 export const URL_REGISTRO_LANDING = "https://dropi.co/expowinners";
-
-// 3) PINs válidos para el personal de puerta (agrega los que necesites)
-//    Cambia esto antes de publicar. Es una barrera básica, no una autenticación real.
-// [Ya no se usa] El PIN se reemplazó por login real con correo/contraseña (ver auth.js / AuthGate.jsx).
-export const STAFF_PINS = ["4821", "7350", "9012"];
 
 // 5) Fecha simulada para PROBAR la validación de "día correcto" del check-in
 //    sin esperar a la fecha real ni tocar el reloj del celular. Ejemplo:

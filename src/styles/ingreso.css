@@ -422,15 +422,6 @@ h1{
   font-weight: 700;
 }
 
-.test-banner{width:100%;max-width:380px;margin-bottom:18px;}
-.test-ids{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
-.test-ids button{
-  width:auto;margin-top:0;padding:7px 12px;font-size:12px;
-  background:transparent;border:1px solid rgba(255,255,255,.15);
-  color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:500;
-}
-.test-ids button:hover{border-color:var(--gold);color:var(--gold);}
-
 /* ---- Cortinilla de video ---- */
 #introOverlay{
   position:fixed;inset:0;

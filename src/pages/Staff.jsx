@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { MODO_PRUEBA, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, EVENTO } from '../config.js';
+import { IMAGEN_FONDO_LOGIN, LOGO_LOGIN, EVENTO } from '../config.js';
 import { procesarCheckin, obtenerContadoresPorDia, obtenerAsistentesIngresados } from '../lib/dataLayer.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
@@ -364,10 +364,6 @@ function ScannerView({ usuario, onLogout }) {
           <span className="staff-scanner-corner bl" />
           <span className="staff-scanner-corner br" />
         </div>
-
-        {MODO_PRUEBA && (
-          <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
-        )}
 
         <div id="manualTest" style={{ display: 'block' }}>
           <div className="staff-manual-title">

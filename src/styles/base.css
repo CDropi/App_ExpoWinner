@@ -1,0 +1,434 @@
+/* ============================================================
+   base.css — variables de diseño y componentes compartidos entre
+   ingreso.html y staff.html.
+   ============================================================ */
+
+/* ---- Tipografía personalizada: Tusker (títulos) ----
+   Solo se usa el peso bold (TuskerGrotesk-4700Bold), que es el que
+   aplican los títulos en toda la app. Montserrat se carga aparte
+   desde Google Fonts en cada .html. */
+@font-face{
+  font-family:'Tusker';
+  src:
+    url('/fonts/TuskerGrotesk-4700Bold.woff2') format('woff2'),
+    url('/fonts/TuskerGrotesk-4700Bold.ttf') format('truetype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+/* ---- Montserrat auto-hospedada (Light y Bold) ----
+   El resto de los pesos (400/500/600) se siguen cargando desde
+   Google Fonts en cada .html; estos dos pesos los reemplaza tu
+   propia fuente. Coloca los archivos en fonts/ con estos nombres. */
+@font-face{
+  font-family:'Montserrat';
+  src:
+    url('/fonts/Montserrat-Light.woff2') format('woff2'),
+    url('/fonts/Montserrat-Light.ttf') format('truetype');
+  font-weight:300;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Montserrat';
+  src:
+    url('/fonts/Montserrat-Bold.woff2') format('woff2'),
+    url('/fonts/Montserrat-Bold.ttf') format('truetype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+:root{
+  --bg:#0B0F1A;
+  --bg-2:#141a2b;
+  --paper:#FBF9F3;
+  --gold:#E8B23D;
+  --gold-deep:#B8862A;
+  --ink:#10131C;
+  --muted:#7C8398;
+  --green:#2FAE5C;
+  --red:#E0473E;
+  --radius:22px;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;overflow-x:hidden;}
+body{
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  color:var(--paper);
+  background:var(--bg);
+}
+
+/* ---- Botón base ---- */
+button{
+  border:none;
+  border-radius:12px;
+  background:var(--gold);
+  color:#241a05;
+  font-weight:700;
+  font-family:'Tusker',sans-serif;
+  font-size:14px;
+  cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+}
+button:hover{background:#f0bd4f;}
+button:active{transform:scale(.98);}
+button:disabled{opacity:.5;cursor:default;}
+
+/* ---- Spinner de carga ---- */
+.spinner{
+  width:18px;height:18px;
+  border:2px solid rgba(36,26,5,.3);
+  border-top-color:#241a05;
+  border-radius:50%;
+  display:inline-block;
+  animation:spin .7s linear infinite;
+  vertical-align:middle;
+  margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+
+/* ---- Pantalla de bloqueo: solo se puede usar desde celular ---- */
+.solo-mobil{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap: 100px;
+}
+
+.solo-mobil-img {
+  width: 300px;
+}
+
+.solo-mobil-info {
+  width: 30%;
+  padding: 0 50px;
+}
+
+.solo-mobil-title{
+  font-family:'Tusker',sans-serif;
+  font-weight:700;
+  font-size:70px;
+  margin:0 0 50px;
+  line-height: 85px;
+}
+
+.solo-mobil-text{
+  font-size:16px;
+  color:white;
+  line-height:1.6;
+  margin:0;
+  text-align: justify;
+}
+
+.solo-mobil-icon{
+  position:relative;
+  display:inline-block;
+}
+.solo-mobil-icon img{
+  position:relative;
+  z-index:1;
+  max-width:700px;
+  display:block;
+}
+
+.solo-mobil-icon::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:6px;
+  transform:translateX(-50%);
+  width:75%;
+  height:70px;
+  background:radial-gradient(ellipse at center, rgba(0, 0, 0, 0.712) 0%, rgba(0,0,0,0) 80%);
+  z-index:0;
+}
+
+/* ---- Login compartido (público en Ingreso, y AuthGate en Staff) ---- */
+.login-card{
+  width:100%;
+  max-width:380px;
+  text-align:center;
+}
+
+.login-card#restablecerCard{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.visible#mainContent{
+  display: flex;
+  justify-content: center;
+}
+
+.login-card#ingresarPasswordCard{
+  width: 80%;
+}
+
+.login-card#crearPasswordCard{
+  width: 80%;
+}
+
+/* Botón de "volver" con el mismo lenguaje visual (vidrio líquido) que el
+   logout de Staff — círculo translúcido con blur, esquina superior
+   izquierda de la tarjeta. */
+/* Botón de "volver" fijo en la esquina superior izquierda de la pantalla
+   (no dentro de la tarjeta) — mismo lenguaje visual (vidrio líquido) que
+   el logout de Staff. */
+.ingreso-volver-btn{
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  width:40px;height:40px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  border:1px solid rgba(255,255,255,.25);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  backdrop-filter:blur(6px) saturate(140%);
+  -webkit-backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+.ingreso-volver-btn img{
+  width:16px;
+  height:16px;
+  display:block;
+}
+.ingreso-volver-btn:hover img{opacity:.8;}
+.ingreso-volver-btn:hover,
+.ingreso-volver-btn:focus,
+.ingreso-volver-btn:active{
+  outline:none !important;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06)) !important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15) !important;
+  transform:none !important;
+}
+
+.login-title{
+  font-family:'Tusker';
+  font-size:50px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin: 0 0 10px;
+  line-height: 1.1em;
+}
+
+#restablecerCard .login-title {
+  margin-bottom: 30px;
+}
+
+/* ---- Ajustes para celulares muy angostos (~360px, comunes en Android
+   de gama baja/media) — evita que los títulos grandes se desborden ---- */
+@media (max-width:380px){
+  .login-title{font-size:42px;}
+}
+
+.login-logo{
+  width:120px;
+  height:120px;
+  object-fit:contain;
+  margin:0 auto 10px;
+  display:block;
+}
+
+#restablecerCard .login-logo {
+  margin-bottom: 30px;
+}
+
+.login-logo-Staff {
+  width:200px;
+  object-fit:contain;
+  margin:0 auto 18px;
+  display:block;
+}
+.login-subtitle{
+  font-size:15px;
+  color:var(--paper);
+  margin:0 0 14px;
+}
+
+.login-subtitle strong{font-weight:700;}
+
+#restablecerCard .login-subtitle { 
+  width: 80%;
+  font-size: 12px;
+}
+
+#restablecerCard .login-subtitle strong{ 
+  font-size: 15px;
+}
+
+.login-input{
+  display: block;
+  width: 100%;
+  box-sizing:border-box;
+  padding:10px 22px;
+  border-radius:15px;
+  border:1px solid rgba(168, 168, 168, 0.35);
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0) 28%, rgba(255,255,255,.40) 46%, rgba(255,255,255,.1) 58%, rgba(255,255,255,0) 74%),
+    linear-gradient(135deg, rgba(92, 92, 92, 0.06), rgba(92,92,92,.01)),
+    rgba(0, 0, 0, .02);
+  background-size:220% 100%, 100% 100%, 100% 100%;
+  background-position:0% 0%, 0% 0%, 0% 0%;
+  backdrop-filter:blur(1px) saturate(30%) brightness(.9);
+  -webkit-backdrop-filter:blur(1px) saturate(30%) brightness(.9);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.18), inset 0 -1px 6px rgba(0,0,0,.1);
+  color:var(--paper);
+  font-size:15px;
+  text-align:center;
+  outline:none;
+  margin-bottom:13px;
+  transition:background-position .6s ease;
+}
+.login-input:focus{background-position:100% 0%, 0% 0%, 0% 0%;}
+
+.login-button{
+  padding:8px 20px;
+  border-radius:999px;
+  background: linear-gradient(to top, #ED6F2D 0%, #8d2e00 100%);
+  border: 1px solid #ed6f2d;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:100;
+  font-size:15px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  margin:0 0 20px;
+}
+.login-button:hover{background: linear-gradient(to top, #ED6F2D 0%, #8d2e00 100%);}
+
+.login-register{
+  font-size:13px;
+  color:white;
+  margin-bottom: 20px;
+}
+
+.login-register strong{font-weight: 700;}
+
+.login-register a{color:white;font-weight:700;text-decoration:underline;}
+
+.error-msg{
+  color:white;
+  font-size:10px;
+  margin-top:-6px;
+  margin-bottom:12px;
+  display:none;
+  line-height:1.4;
+}
+.error-msg strong{font-weight:700;}
+
+/* ---- AuthGate: login por correo/contraseña (Staff) ---- */
+.staff-login-card{
+  padding:32px 18px;
+}
+
+.Title-Staff {
+  padding: 0 30px;
+  margin-bottom: 10px;
+}
+
+.staff-login-al{
+  font-size:18px;
+  color:var(--paper);
+  margin: 0;
+  font-weight:300;
+  text-align: right;
+}
+.staff-login-input{text-align:left;}
+
+.staff-login-input::placeholder{
+  color:rgba(255,255,255,.45);
+  font-size: 12px;
+}
+
+/* Botón de "ver/ocultar contraseña" dentro del input de la contraseña */
+.staff-password-wrap{position:relative;}
+.staff-password-input{padding-right:46px;}
+.staff-password-toggle{
+  position:absolute;
+  top:50%;
+  right:6px;
+  transform:translateY(-50%);
+  width:32px;height:32px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  margin: 1px 0 0;
+}
+
+.staff-password-toggle img{width:19px;height:19px;display:block;opacity:.5;transition:opacity .15s ease;}
+.staff-password-toggle:hover img,
+.staff-password-toggle:focus img,
+.staff-password-toggle:active img{opacity:1;}
+.staff-password-toggle:hover,
+.staff-password-toggle:focus,
+.staff-password-toggle:active{
+  outline:none;
+  transform:translateY(-50%);
+  color:#fff;
+  background:transparent;
+}
+
+#restablecerCard .staff-password-toggle { 
+  top:38%;
+}
+
+.staff-login-button{
+  padding:7px 20px;
+  border-radius:999px;
+  background:rgba(20,12,6,.55);
+  border: 1px solid rgb(255, 106, 26, .5);
+  color:#fff;
+  font-family:'Montserrat';
+  font-weight:100;
+  font-size:15px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+  margin:6px 0 22px;
+}
+
+.staff-login-button:hover{background:rgba(20,12,6,.75);}
+
+.staff-login-button:disabled{opacity:.6;cursor:default;}
+
+.auth-gate-loading{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Botón de "cerrar sesión" del asistente (reusa .staff-logout de
+   staff.css) — fijo en la esquina superior derecha, espejo del botón de
+   "Volver" que ya está fijo a la izquierda. Solo se muestra dentro del
+   app-shell, cuando ya hay una persona con sesión iniciada. */
+.staff-logout.app-logout-btn{
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+}

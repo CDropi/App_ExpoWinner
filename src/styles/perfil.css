@@ -1,0 +1,392 @@
+/* ============================================================
+   perfil.css — pestaña de Perfil: identidad, tarjeta de
+   beneficios con la barra de avance y acceso a la política.
+   ============================================================ */
+
+/* ---- Perfil: panel de identidad (nombre + comunidad) ----
+   Panel de vidrio con un resplandor naranja en los dos costados. El
+   resplandor va en un ::before por detrás del contenido, no en el
+   background del panel, para que el backdrop-filter siga viendo el fondo
+   de la pantalla y no se lave el naranja. */
+.perfil-identidad{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:80%;
+  padding:14px 18px;
+  margin-bottom:20px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.18);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.20) 0%,
+    rgba(255,255,255,.06) 48%,
+    rgba(255,255,255,.11) 100%);
+  backdrop-filter:blur(5px) saturate(150%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.38),
+    inset 0 -1px 6px rgba(0,0,0,.20),
+    0 14px 32px rgba(0,0,0,.45);
+  overflow:hidden;
+}
+/* Resplandor naranja de los costados. */
+.perfil-identidad::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(60% 120% at 0% 50%, rgba(255,106,26,.75) 0%, rgba(255,106,26,0) 62%),
+    radial-gradient(60% 120% at 100% 50%, rgba(255,106,26,.75) 0%, rgba(255,106,26,0) 62%);
+}
+
+.perfil-identidad-pill{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  max-width:100%;
+  padding:7px 18px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(6,9,16,.78);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+}
+/* El SVG del icono es blanco (es el mismo que usa la barra de navegación).
+   Se pinta de naranja con una máscara en lugar de duplicar el archivo. */
+.perfil-identidad-icono{
+  flex-shrink:0;
+  width:15px;
+  height:18px;
+  background:var(--brand-orange);
+  -webkit-mask:url('/media/Perfil_2.svg') no-repeat center / contain;
+  mask:url('/media/Perfil_2.svg') no-repeat center / contain;
+}
+.perfil-identidad-nombre{
+  font-family:'Montserrat';
+  font-size:15px;
+  letter-spacing:.06em;
+  color:var(--paper);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.perfil-identidad-comunidad{
+  font-family:'Tusker';
+  font-size:23px;
+  line-height:1.05;
+  letter-spacing:.06em;
+  text-align:center;
+  color:var(--paper);
+}
+@media (max-width:360px){
+  .perfil-identidad-comunidad{font-size:20px;}
+  .perfil-identidad-nombre{font-size:13px;}
+}
+
+/* ---- Perfil (mínimo por ahora): tarjeta de acceso a premios ---- */
+.perfil-view{
+  padding:8px 4px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+/* ---- Tarjeta de beneficios (Ruta Winner) ----
+   Panel de vidrio con Codi asomado por la esquina superior derecha. El
+   personaje queda contenido dentro de la tarjeta (apoyado en el borde
+   inferior derecho), y overflow:hidden asegura que no se salga. */
+.perfil-beneficios{
+  position:relative;
+  width:100%;
+  /* El carril de Codi ya no se reserva aquí sino en .perfil-beneficios-contenido,
+     para que la barra de avance pueda ocupar todo el ancho de la tarjeta.
+     Versión anterior:
+  padding:18px 126px 18px 18px;
+  */
+  padding:18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.14) 0%,
+    rgba(255,255,255,.05) 52%,
+    rgba(255,255,255,.09) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(150%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.30),
+    inset 0 -1px 6px rgba(0,0,0,.20),
+    0 14px 32px rgba(0,0,0,.40);
+  /* Codi va contenido dentro de la tarjeta, así que overflow:hidden garantiza
+     que ni el personaje ni su sombra se salgan de las esquinas redondeadas. */
+  overflow:hidden;
+  /* Alto mínimo: asegura que quepa el personaje completo aunque el texto se
+     acorte. Si la tarjeta quedara más baja, overflow:hidden lo cortaría por
+     la mitad. Es el alto visible de Codi (190px de archivo x 0.87 = 165px)
+     más los dos paddings de 18px.
+     Versión anterior, cuando Codi medía 172px: min-height:186px; */
+  min-height:204px;
+  /* Versión anterior, cuando el personaje sobresalía por arriba:
+  margin-top:34px;
+  */
+  margin-top:18px;
+}
+
+.perfil-beneficios-codi{
+  position:absolute;
+  /* El PNG trae aire transparente alrededor del personaje (el dibujo real
+     ocupa aprox. el 72% del ancho y el 87% del alto del archivo), así que
+     el ancho y el desplazamiento están calculados sobre el archivo completo,
+     no sobre lo que se ve. */
+  /* El aire derecho del archivo es 140/1080 del ancho (~13%), así que este
+     desplazamiento negativo solo compensa ese vacío: el dibujo queda unos
+     6px adentro del borde, no sobresaliendo.
+     Versión anterior, cuando sobresalía: right:-22px; bottom:-6px; */
+  right:-32px;
+  /* El dibujo llega hasta el borde inferior del archivo (no hay aire abajo),
+     así que bottom:0 apoya los pies exactamente en el borde de la tarjeta. */
+  bottom:0;
+  width:190px;
+  height:auto;
+  pointer-events:none;
+  /* Sombra propia del personaje para que no se vea pegado al vidrio.
+     Se reduce respecto a la versión anterior porque ahora la recorta el
+     overflow:hidden de la tarjeta y una sombra grande se vería cortada. */
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.40));
+}
+
+/* ---- Barra de avance de la Ruta Winner ---- */
+.perfil-beneficios-avance{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  margin-bottom:16px;
+}
+
+.perfil-beneficios-avance-fila{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.perfil-beneficios-avance-estrella{
+  width:20px;
+  height:20px;
+  flex-shrink:0;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));
+}
+
+.perfil-beneficios-avance-titulo{
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:13px;
+  letter-spacing:.06em;
+  color:var(--paper);
+  text-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.perfil-beneficios-avance-titulo strong{font-weight:700;}
+
+.perfil-beneficios-avance-track{
+  position:relative;
+  width:100%;
+  height:14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  /* Canal translúcido con sombra interna para el efecto de hueco. */
+  background:rgba(255,255,255,.14);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+
+.perfil-beneficios-avance-barra{
+  height:100%;
+  border-radius:999px;
+  /* Degradado del naranja de marca con un brillo arriba, como en la
+     referencia de diseño. */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 48%),
+    linear-gradient(90deg, #ED6F2D 0%, #FFA23D 100%);
+  transition:width .35s ease;
+}
+
+.perfil-beneficios-contenido{
+  position:relative;
+  z-index:1;
+  /* Reserva el carril donde va Codi para que el texto no se le meta debajo.
+     El dibujo empieza a 133px del borde derecho de la tarjeta (ancho 190px,
+     right:-32px, menos el 13% de aire del archivo), así que 118px + los 18px
+     de padding de la tarjeta dejan un par de píxeles de holgura. */
+  padding-right:118px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+}
+
+.perfil-beneficios-titulo{
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:14px;
+  line-height:1.25;
+  color:var(--paper);
+}
+.perfil-beneficios-titulo strong{font-weight:700;}
+
+.perfil-beneficios-texto{
+  margin:0;
+  font-size:10px;
+  line-height:1.5;
+  color:rgba(255,255,255,.82);
+}
+
+.perfil-beneficios-progreso{
+  font-size:11px;
+  font-weight:600;
+  color:var(--brand-orange);
+  /* Vive dentro de .perfil-beneficios-avance (columna flex), así que se alinea
+     al borde derecho de la barra con align-self, no con text-align. */
+  align-self:flex-end;
+}
+
+.perfil-beneficios-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-top:4px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:var(--brand-orange);
+  color:#fff;
+  font-family:'Montserrat';
+  font-weight:100;
+  font-size:11px;
+  letter-spacing:.04em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 18px -8px rgb(169 69 15 / 90%)
+}
+.perfil-beneficios-btn strong{font-weight:800;}
+/* La regla genérica button:hover de base.css pinta el fondo dorado, así que
+   hay que redeclarar background en los tres estados. Van con :not(:disabled)
+   porque en CSS el :hover sí aplica sobre botones deshabilitados y volvería a
+   pintarlos de naranja. */
+.perfil-beneficios-btn:not(:disabled):hover,
+.perfil-beneficios-btn:not(:disabled):focus,
+.perfil-beneficios-btn:not(:disabled):active{
+  outline:none;
+  background:var(--brand-orange);
+  color:#fff;
+}
+.perfil-beneficios-btn:not(:disabled):active{transform:scale(.98);}
+
+/* Bloqueado hasta completar los 7 stands: pierde el naranja y queda como
+   vidrio apagado, igual que el botón "Reclamar premios" del mapa. */
+.perfil-beneficios-btn:disabled{
+  cursor:not-allowed;
+  color:rgba(255,255,255,.55);
+  background:linear-gradient(150deg,
+    rgba(255,255,255,.14) 0%,
+    rgba(255,255,255,.05) 100%);
+  border:1px solid rgba(255,255,255,.16);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(140%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.22),
+    0 4px 12px rgba(0,0,0,.30);
+}
+
+.perfil-beneficios-btn-flecha{
+  width:7px;
+  height:auto;
+  flex-shrink:0;
+  margin-left: 5px;
+}
+/* El SVG de la flecha es blanco fijo, así que se atenúa aparte para que
+   acompañe al texto apagado. */
+.perfil-beneficios-btn:disabled .perfil-beneficios-btn-flecha{
+  opacity:.55;
+}
+
+/* ---- Perfil: acceso a la política de tratamiento de datos ---- */
+.perfil-politica{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  margin-top:14px;
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.12) 0%,
+    rgba(255,255,255,.04) 52%,
+    rgba(255,255,255,.08) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(150%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.24),
+    0 10px 24px rgba(0,0,0,.35);
+  text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* Ahora es un <button>, así que le llega la regla genérica de base.css que
+   pinta el fondo dorado y aplica scale(.98): hay que anular las dos. */
+.perfil-politica:hover,
+.perfil-politica:focus,
+.perfil-politica:active{
+  outline:none;
+  transform:none;
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.16) 0%,
+    rgba(255,255,255,.06) 52%,
+    rgba(255,255,255,.10) 100%);
+}
+
+.perfil-politica-icono{
+  width:22px;
+  height:22px;
+  flex-shrink:0;
+}
+
+.perfil-politica-texto{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  flex:1;
+  min-width:0;
+}
+.perfil-politica-titulo{
+  font-size:13px;
+  color:var(--paper);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.perfil-politica-sub{
+  font-family: 'Montserrat';
+  font-weight: 100;
+  font-size:11px;
+  color:rgba(255,255,255,.65);
+}
+
+.perfil-politica-flecha{
+  width:7px;
+  height:auto;
+  flex-shrink:0;
+  opacity:.55;
+}
+
+/* Celulares angostos: Codi se encoge para no comerse el texto. */
+@media (max-width:360px){
+  .perfil-beneficios{min-height:200px;}
+  .perfil-beneficios-contenido{padding-right:112px;}
+  .perfil-beneficios-codi{width:185px;right:-32px;}
+  .perfil-beneficios-titulo{font-size:13px;}
+}

@@ -1,0 +1,770 @@
+/* ============================================================
+   mapa.css — plano del evento: pines de marca, punto de Academy,
+   popups, botón de premios y panel de progreso (trofeo).
+   ============================================================ */
+
+/* Perfil: pantalla fija, sin scroll.
+   OJO con la especificidad: mapa.css se carga ANTES de ingreso.css (porque
+   Ingreso.jsx importa las vistas antes que su hoja de estilos), así que la
+   versión anterior de una sola clase perdía contra .app-scroll{overflow-y:auto}
+   de ingreso.css y el Perfil seguía haciendo scroll. Con las dos clases
+   juntas gana esta regla sin importar el orden de carga.
+   Versión anterior (no funcionaba en el build):
+.app-scroll--sin-scroll{overflow-y:hidden;}
+*/
+/* overflow completo (no solo overflow-y): con overflow-y:hidden y overflow-x
+   por defecto, el navegador convierte el eje horizontal en "auto" y en iOS
+   eso deja el rebote vertical. Con overflow:hidden no hay arrastre de
+   ningún tipo. */
+.app-scroll.app-scroll--sin-scroll{overflow:hidden;}
+
+.mapa-view{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.mapa-plano-wrap{position:relative;flex:1;min-height:0;}
+
+
+/* ---- Botón de reclamar premios (debajo de los stands) ---- */
+.mapa-reclamar{
+  position:absolute;
+  left:50%;
+  /* 30px para no quedar debajo del círculo naranja del nav, que sobresale
+     22px por encima de la barra. */
+  bottom:45px;
+  transform:translateX(-50%);
+  z-index:8;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:8px 26px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(0,0,0,.10) 100%),
+    var(--brand-orange);
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  cursor:pointer;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.40),
+    inset 0 -2px 5px rgba(0,0,0,.16),
+    0 6px 18px rgba(0,0,0,.40);
+}
+
+/* base.css tiene una regla global `button:active{transform:scale(.98)}`.
+   Como este botón se centra con `transform:translateX(-50%)`, esa regla
+   le borraba el centrado al presionarlo y el botón se corría hacia un
+   lado. Aquí se reescribe el transform incluyendo siempre el -50%.
+   La especificidad de `.mapa-reclamar:active` (0,2,0) le gana a la de
+   `button:active` (0,1,1), así que este valor manda. */
+.mapa-reclamar:hover,
+.mapa-reclamar:focus,
+.mapa-reclamar:active{
+  transform:translateX(-50%);
+}
+
+.mapa-reclamar:not(:disabled):active{
+  transform:translateX(-50%) scale(.97);
+}
+
+.mapa-reclamar:not(:disabled):hover,
+.mapa-reclamar:not(:disabled):active{
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.06) 0%, rgba(0,0,0,.22) 100%),
+    var(--brand-orange);
+  outline:none;
+}
+
+/* Bloqueado: pierde el naranja y queda como vidrio apagado, para que se
+   lea claramente como "todavía no". */
+.mapa-reclamar:disabled{
+  cursor:not-allowed;
+  color:rgba(255,255,255,.55);
+  border-color:rgba(255,255,255,.16);
+  background:linear-gradient(150deg,
+    rgba(255,255,255,.14) 0%,
+    rgba(255,255,255,.05) 100%);
+  backdrop-filter:blur(9px) saturate(140%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.22),
+    0 4px 12px rgba(0,0,0,.30);
+}
+
+.mapa-reclamar-contador{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0;
+  opacity:.85;
+}
+
+.mapa-plano{
+  position:relative;
+  z-index:6;
+  width:100%;
+  height:100%;
+  background:var(--bg-2);
+  background-size:cover;
+  background-position:center;
+  overflow:visible;
+}
+
+/* Capa del stand encendido. Las tres reglas de fondo son EXACTAMENTE las
+   mismas que usa .mapa-plano; de eso depende que calce. Si algún día se
+   cambia el encuadre del plano (a contain, a otra posición), hay que
+   cambiarlo aquí también o el brillo queda corrido del stand.
+   z-index:1 la deja sobre el fondo del plano pero debajo de los pines (7),
+   el botón de premios (8), el encabezado (9) y el popup (10).
+   pointer-events:none para que no intercepte el toque de los pines. */
+.mapa-stand-encendido{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  pointer-events:none;
+  animation:mapaStandEncender .5s ease-out;
+}
+
+@keyframes mapaStandEncender{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+/* Contenedor del encabezado del mapa. Antes el posicionamiento vivía
+   dentro de .mapa-titulo; se movió aquí para que el título y el texto
+   de apoyo fluyan uno debajo del otro.
+   pointer-events:none => el encabezado no bloquea el toque de los pines
+   que queden debajo de él. */
+.mapa-encabezado{
+  position:absolute;
+  top:30px;
+  left:0;
+  right:0;
+  z-index:9;
+  padding:calc(16px + env(safe-area-inset-top)) 16px 20px;
+  text-align:center;
+  pointer-events:none;
+}
+
+
+.mapa-titulo{
+  margin:0;
+  font-family:'Tusker',sans-serif;
+  font-size:40px;
+  letter-spacing: 1px;
+  color:#fff;
+  text-transform: uppercase;
+}
+
+/* Texto de apoyo debajo del título. */
+.mapa-texto{
+  margin: 8px 0 0;
+  font-family:'Montserrat',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.5;
+  color:rgba(255,255,255,.88);
+}
+
+.mapa-titulo strong{
+  color: #ED6F2D;
+}
+
+.mapa-logo{
+  position:absolute;
+  top:calc(14px + env(safe-area-inset-top));
+  left:16px;
+  z-index:11;
+  height:34px;
+  width:auto;
+  object-fit:contain;
+}
+
+.mapa-trofeo-btn{
+  position:absolute;
+  top:calc(10px + env(safe-area-inset-top));
+  right:16px;
+  z-index:11;
+  flex-shrink:0;
+  width:40px;height:40px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  border:1px solid rgba(255,255,255,.25);
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+.mapa-trofeo-btn svg{width:19px;height:19px;}
+.mapa-trofeo-btn:hover,
+.mapa-trofeo-btn:focus,
+.mapa-trofeo-btn:active{
+  outline:none;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+  transform:none;
+}
+
+.mapa-plano-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 30px;
+  font-size:13px;
+  color:rgba(255,255,255,.4);
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 10px, transparent 10px 20px);
+}
+
+.mapa-pin{
+  position:absolute;
+  transform:translate(-50%, -50%);
+  width:30px;height:30px;
+  border:none;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  z-index:7;
+}
+.mapa-pin:hover,
+.mapa-pin:focus,
+.mapa-pin:active{
+  background:transparent;
+  outline:none;
+  transform:translate(-50%, -50%);
+}
+/* Los puntos volvieron a ser naranja para todas las marcas. */
+.mapa-pin-dot{
+  width:16px;height:16px;
+  border-radius:50%;
+  background:var(--brand-orange);
+  border:2px solid #fff;
+  box-shadow:0 0 0 0 rgba(255,106,26,.55);
+  animation:mapaPinPulse 2.2s ease-out infinite;
+  transition:transform .15s ease;
+}
+.mapa-pin.active .mapa-pin-dot{
+  transform:scale(1.15);
+  animation:none;
+  box-shadow:0 0 0 6px rgba(255,106,26,.25);
+}
+@keyframes mapaPinPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,106,26,.55);}
+  70%{box-shadow:0 0 0 10px rgba(255,106,26,0);}
+  100%{box-shadow:0 0 0 0 rgba(255,106,26,0);}
+}
+
+.mapa-tooltip{
+  position:absolute;
+  /* -50% centra el popup sobre el pin. --corrimiento lo empuja hacia
+     adentro cuando el pin está muy pegado al borde del plano (lo calcula
+     Ingreso.jsx midiendo el ancho real). Normalmente vale 0px. */
+  /* transform:translate(-50%, calc(-100% - 18px)); */ /* versión anterior (sin corrimiento) */
+  transform:translate(calc(-50% + var(--corrimiento, 0px)), calc(-100% - 12px));
+  z-index:10;
+  /* Sin esto el popup se estrecha contra el borde derecho del plano.
+     Al estar posicionado solo con `left`, el ancho automático de un
+     elemento absoluto se limita al espacio que queda hasta el borde
+     derecho: para Chatea (x:91%) eran apenas 9% del plano, y ahí el
+     texto "COMPLETADO ✓" se partía en dos líneas. Pasaba solo con
+     Chatea y DropiPay (x:84.8%) porque son los dos de la derecha.
+     max-content le dice que use el ancho que su contenido necesita,
+     y el max-width es la red de seguridad para que nunca supere el
+     ancho del plano. El corrimiento ya se encarga de meterlo adentro. */
+  width:max-content;
+  max-width:calc(100% - 20px);
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  /* El vidrio: gradiente translúcido + desenfoque de lo que hay detrás.
+     El blur alto (36px) es lo que hace que el plano del mapa se vea
+     difuminado a través del popup. */
+  border:1px solid rgba(255,255,255,.22);
+  background:linear-gradient(150deg,
+    rgba(255,255,255,.20) 0%,
+    rgba(255,255,255,.06) 48%,
+    rgba(255,255,255,.11) 100%);
+  /* IMPORTANTE: aquí va SOLO la propiedad estándar, sin la línea
+     -webkit-backdrop-filter escrita a mano.
+     Vite 8 minifica con Lightning CSS, que pone los prefijos por su
+     cuenta según los navegadores objetivo. Si encuentra el -webkit-
+     ya escrito, asume que el prefijado está resuelto y en el build
+     deja SOLO la línea -webkit-, borrando la estándar. En dev no se
+     nota (el dev server no minifica); en Vercel el popup salía sin
+     desenfoque. Dejando solo esta línea, el build emite las dos.
+     Versión anterior, por si se necesita revertir:
+  backdrop-filter:blur(36px) saturate(150%);
+  */
+  backdrop-filter:blur(9px) saturate(150%);
+  /* Los dos primeros inset son el brillo del borde superior y la
+     sombra interna inferior: dan la sensación de grosor del vidrio.
+     El tercero es la sombra que lo separa del mapa. */
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.38),
+    inset 0 -1px 6px rgba(0,0,0,.20),
+    0 14px 32px rgba(0,0,0,.45);
+  animation:mapaTooltipIn .22s ease-out;
+}
+
+@keyframes mapaTooltipIn{
+  from{
+    opacity:0;
+    transform:translate(calc(-50% + var(--corrimiento, 0px)), calc(-100% - 4px)) scale(.94);
+  }
+  to{
+    opacity:1;
+    transform:translate(calc(-50% + var(--corrimiento, 0px)), calc(-100% - 12px)) scale(1);
+  }
+}
+
+/* ---- Sobre la puntita que apuntaba al pin ----
+   Se quitó por dos razones:
+   1) El popup es translúcido, así que un pico puesto por detrás siempre
+      se veía intersectando a través del vidrio. No hay forma de esconder
+      esa mitad sin volver el popup opaco.
+   2) Con el corrimiento de los popups pegados al borde, la puntita ya no
+      quedaba sobre el pin, así que dejaba de tener sentido.
+   Además ahorra un segundo desenfoque (backdrop-filter), que es la parte
+   más costosa de renderizar en celulares. */
+
+.mapa-tooltip-titulo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font-family:'Tusker',sans-serif;
+  font-size:15px;
+  color:var(--paper);
+  white-space:nowrap;
+  /* Sombra suave para que el nombre se lea sobre cualquier zona del plano. */
+  text-shadow:0 1px 3px rgba(0,0,0,.45);
+}
+
+/* Logo horizontal de la marca. Altura fija y ancho libre hasta un
+   máximo, con object-fit:contain para que ninguno se deforme: los
+   logos van de proporción 2.8 (Roax) a 6.3 (DropiPay). */
+.mapa-tooltip-logo{
+  height:22px;
+  width:auto;
+  max-width:132px;
+  object-fit:contain;
+  display:block;
+}
+
+.mapa-tooltip-btn{
+  padding:3px 22px;
+  border-radius:999px;
+  /* Borde derivado del color de las letras: sobre marcas oscuras queda
+     un borde blanco tenue; sobre marcas claras, uno oscuro tenue. */
+  border:1px solid color-mix(in srgb, var(--stand-texto, #fff) 22%, transparent);
+  /* El color de la marca de fondo, con un degradado de blanco a negro
+     encima que le da el brillo de pastilla. Se hace con rgba en vez de
+     aclarar el color directamente para no depender de color-mix aquí. */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(0,0,0,.10) 100%),
+    var(--stand-color, var(--brand-orange));
+  color:var(--stand-texto, #fff);
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  /* Refuerzo para que el chulo de "COMPLETADO ✓" nunca caiga a otra
+     línea, aunque el popup quede estrecho por algún motivo. */
+  white-space:nowrap;
+  cursor:pointer;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.40),
+    inset 0 -2px 5px rgba(0,0,0,.16),
+    0 4px 14px rgba(0,0,0,.35);
+}
+.mapa-tooltip-btn:hover,
+.mapa-tooltip-btn:focus,
+.mapa-tooltip-btn:active{
+  /* background:var(--brand-orange-deep); */ /* versión anterior (naranja fijo) */
+  /* Mismo color de marca, solo un poco más apagado al presionar. */
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.06) 0%, rgba(0,0,0,.22) 100%),
+    var(--stand-color, var(--brand-orange));
+  color:var(--stand-texto, #fff);
+  outline:none;
+  transform:none;
+}
+
+.mapa-tooltip button {
+  margin-top: 9px;
+}
+
+/* ============================================================
+   RUTA WINNER — badge del trofeo, pines "pre-desbloqueados",
+   panel de progreso, y la actividad completa por stand
+   ============================================================ */
+.mapa-trofeo-badge{
+  position:absolute;
+  top:-4px;
+  right:-4px;
+  min-width:18px;
+  height:18px;
+  padding:0 4px;
+  border-radius:999px;
+  background:var(--brand-orange);
+  color:#fff;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ---- Punto de Academy (centro del plano) ----
+   Se diferencia de los 7 puntos de marca por cuatro cosas a la vez, para que
+   no dependa solo del color: es más grande, es dorado en vez de naranja,
+   lleva una estrella dentro y su halo late más lento y más amplio. */
+.mapa-pin--academy{
+  width:44px;height:44px;
+  z-index:8; /* por encima de los pines de marca si alguno queda cerca */
+}
+.mapa-pin-academy-dot{
+  position:relative;
+  width:30px;height:30px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px solid #fff;
+  background:linear-gradient(160deg, #FFD36B 0%, var(--gold) 45%, var(--gold-deep) 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.55),
+    0 0 0 0 rgba(232,178,61,.55),
+    0 4px 12px rgba(0,0,0,.40);
+  animation:mapaPinAcademyPulse 2.8s ease-out infinite;
+  transition:transform .15s ease;
+}
+.mapa-pin-academy-dot img{
+  display:block;
+  width:15px;height:15px;
+  /* La sombra despega la estrella del dorado, que es un fondo claro. */
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
+}
+.mapa-pin--academy.active .mapa-pin-academy-dot{
+  transform:scale(1.12);
+  animation:none;
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.55),
+    0 0 0 8px rgba(232,178,61,.25),
+    0 4px 12px rgba(0,0,0,.40);
+}
+/* Halo más amplio y más lento que el de los pines de marca (10px / 2.2s),
+   para que se distinga incluso de reojo. */
+@keyframes mapaPinAcademyPulse{
+  0%{box-shadow:inset 0 1px 2px rgba(255,255,255,.55), 0 0 0 0 rgba(232,178,61,.55), 0 4px 12px rgba(0,0,0,.40);}
+  70%{box-shadow:inset 0 1px 2px rgba(255,255,255,.55), 0 0 0 16px rgba(232,178,61,0), 0 4px 12px rgba(0,0,0,.40);}
+  100%{box-shadow:inset 0 1px 2px rgba(255,255,255,.55), 0 0 0 0 rgba(232,178,61,0), 0 4px 12px rgba(0,0,0,.40);}
+}
+
+/* Popup de Academy: mismo vidrio de .mapa-tooltip pero tintado en dorado,
+   con borde dorado y un poco más ancho, porque lleva bajada de texto.
+   El punto está en x:50, así que no necesita el corrimiento que calcula
+   Ingreso.jsx para los pines pegados a los bordes: --corrimiento se queda en
+   su valor por defecto (0px). */
+.mapa-tooltip--academy{
+  width:210px;
+  padding:11px 13px 13px;
+  border-color:rgba(232,178,61,.45);
+  background:linear-gradient(150deg,
+    rgba(232,178,61,.26) 0%,
+    rgba(232,178,61,.08) 48%,
+    rgba(255,211,107,.16) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.38),
+    inset 0 -1px 6px rgba(0,0,0,.20),
+    0 14px 32px rgba(0,0,0,.45),
+    0 0 22px rgba(232,178,61,.20);
+}
+.mapa-tooltip-kicker{
+  display:block;
+  margin-bottom:5px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:8.5px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#FFD36B;
+}
+.mapa-tooltip-desc{
+  margin:6px 0 0;
+  font-family:'Montserrat',sans-serif;
+  font-size:10.5px;
+  font-weight:300;
+  line-height:1.35;
+  color:rgba(255,255,255,.78);
+}
+/* El nombre puede ir en dos líneas mientras no haya logo, así que se libera
+   el nowrap que traen los popups de marca. */
+.mapa-tooltip--academy .mapa-tooltip-titulo{white-space:normal;}
+
+/* Logo_Academy.png no es un logo horizontal como los de las marcas: es un
+   badge casi cuadrado (825x828). A los 22px de altura que usa
+   .mapa-tooltip-logo quedaba un cuadradito con el texto ilegible, así que
+   aquí se sube la altura y se libera el ancho máximo. */
+.mapa-tooltip--academy .mapa-tooltip-logo{
+  height:46px;
+  max-width:100%;
+}
+
+/* Botón dorado con letras oscuras. Hay que redeclarar fondo y color en los
+   tres estados por las reglas genéricas de button de base.css. */
+.mapa-tooltip-btn--academy{
+  border-color:rgba(0,0,0,.18);
+  background:linear-gradient(180deg, rgba(255,255,255,.28) 0%, rgba(0,0,0,.10) 100%), var(--gold);
+  color:#241a05;
+}
+.mapa-tooltip-btn--academy:hover:not(:disabled),
+.mapa-tooltip-btn--academy:focus:not(:disabled),
+.mapa-tooltip-btn--academy:active:not(:disabled){
+  background:linear-gradient(180deg, rgba(0,0,0,.06) 0%, rgba(0,0,0,.22) 100%), var(--gold);
+  color:#241a05;
+}
+/* Deshabilitado (mientras no hay URL de la mini experiencia): se apaga el
+   dorado y pasa a vidrio, para que no invite a tocarlo. */
+.mapa-tooltip-btn--academy:disabled{
+  background:rgba(255,255,255,.10);
+  color:rgba(255,255,255,.55);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:none;
+  cursor:default;
+  opacity:1; /* anula el opacity:.5 de button:disabled en base.css */
+}
+
+.mapa-pin.done .mapa-pin-dot{
+  background:#22c55e;
+  animation:none;
+  box-shadow:0 0 0 0 rgba(34,197,94,0);
+}
+
+/* ---- Panel de progreso (se abre con el botón trofeo) ---- */
+.trofeo-overlay{
+  position:fixed;inset:0;
+  z-index:30;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.trofeo-panel{
+  width:100%;
+  max-width:360px;
+  max-height:80dvh;
+  overflow-y:auto;
+  background:#1a1a1a;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.1);
+  padding:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.trofeo-panel-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:4px;
+}
+
+.trofeo-panel-titulo{
+  font-family:'Tusker';
+  font-size:20px;
+  color:var(--paper);
+  margin:0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.trofeo-panel-titulo strong {
+  color: #ED6F2D;
+}
+
+.trofeo-panel-cerrar{
+  flex-shrink:0;
+  width:34px;height:34px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:14px;
+  line-height:1;
+  border:1px solid rgba(255,255,255,.25);
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+.trofeo-panel-cerrar:hover,
+.trofeo-panel-cerrar:focus,
+.trofeo-panel-cerrar:active{
+  outline:none;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+  transform:none;
+}
+
+.trofeo-panel-progreso{font-size:12.5px;color:rgba(255,255,255,.6);margin:0 0 16px;}
+
+
+/* ---- Lista agrupada: bloqueados arriba, pre-desbloqueados abajo ---- */
+.trofeo-lista{display:flex;flex-direction:column;gap:18px;margin-bottom:16px;}
+.trofeo-grupo{display:flex;flex-direction:column;gap:0;}
+
+/* Encabezado de cada grupo. La línea a la derecha se hace con ::after para
+   no meter un <hr> ni un div extra en el JSX. */
+.trofeo-grupo-titulo{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.42);
+  margin-bottom:2px;
+}
+.trofeo-grupo-titulo::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:rgba(255,255,255,.08);
+}
+.trofeo-grupo-contador{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0;
+  min-width:16px;
+  padding:1px 5px;
+  border-radius:999px;
+  text-align:center;
+  background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.6);
+}
+.trofeo-grupo-contador.hecho{
+  background:rgba(34,197,94,.15);
+  color:#22c55e;
+}
+
+
+/* Filas sin cápsula, separadas por una línea fina. Al quitar el fondo y el
+   borde de cada tarjeta, la única señal de estado pasa a ser el isotipo
+   (gris + candado vs. color completo) y el texto de la derecha, que es
+   justamente lo que hace que el contraste bloqueado/desbloqueado se lea
+   más fuerte. */
+.trofeo-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 2px;
+  border-radius:0;
+  background:none;
+  border:none;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+/* La última fila de cada grupo no lleva línea: la divisoria del encabezado
+   del grupo siguiente ya hace ese trabajo. */
+.trofeo-item:last-child{border-bottom:none;}
+
+/* Contenedor del isotipo. Es el ancla del candado (position:relative) y le
+   da a todas las marcas el mismo cuadro, sin importar la proporción de cada
+   PNG. */
+.trofeo-item-marca{
+  position:relative;
+  flex-shrink:0;
+  width:40px;height:40px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.trofeo-item-isotipo{
+  display:block;
+  width:27px;height:27px;
+  object-fit:contain;
+}
+/* Bloqueado: el isotipo pierde el color y baja de opacidad para que el
+   candado sea lo primero que se lee. */
+.trofeo-item:not(.hecho) .trofeo-item-isotipo{
+  filter:grayscale(1) brightness(1.6);
+  opacity:.28;
+}
+/* Pre-desbloqueado: isotipo completo, a todo color y sin candado. El cuadro
+   se aclara un poco y el borde toma el verde para reforzar el logro sin
+   necesidad de pintar toda la fila. */
+.trofeo-item.hecho .trofeo-item-marca{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(34,197,94,.3);
+}
+
+/* Fallback si alguna marca no tiene isotipo en config.js */
+.trofeo-item-inicial{
+  font-family:'Tusker',sans-serif;
+  font-size:18px;
+  color:rgba(255,255,255,.5);
+}
+
+.trofeo-item-candado{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.trofeo-item-candado img{
+  display:block;
+  width:15px;height:15px;
+  opacity:.85;
+}
+
+.trofeo-item-nombre{flex:1;font-size:13.5px;color:var(--paper);font-weight:600;}
+.trofeo-item:not(.hecho) .trofeo-item-nombre{color:rgba(255,255,255,.55);}
+.trofeo-item-estado{font-size:11px;color:rgba(255,255,255,.5);}
+.trofeo-item.hecho .trofeo-item-estado{color:#22c55e;}
+
+.trofeo-panel-cta{width:100%;margin-top:10px;}
+
+.trofeo-panel-nota{
+  font-size:12px;
+  color:rgba(255,255,255,.6);
+  text-align:center;
+  line-height:1.4;
+  margin:0;
+}
+
+

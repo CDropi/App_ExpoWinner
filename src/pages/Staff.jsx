@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { IMAGEN_FONDO_LOGIN, LOGO_LOGIN, EVENTO } from '../config.js';
-import { procesarCheckin, obtenerContadoresPorDia, obtenerAsistentesIngresados } from '../lib/dataLayer.js';
+import { MODO_PRUEBA, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, EVENTO, STANDS } from '../config.js';
+import {
+  procesarCheckin, obtenerContadoresPorDia, obtenerAsistentesIngresados,
+  buscarPersonaConPremios, marcarPremioEntregado
+} from '../lib/dataLayer.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
 import AuthGate from '../components/AuthGate.jsx';
@@ -43,6 +46,13 @@ function ScannerView({ usuario, onLogout }) {
   const [isDragging, setIsDragging] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [manualError, setManualError] = useState('');
+
+  // ---- Vista de "entrega de premios" (Ruta Winner) ----
+  const [vistaPremios, setVistaPremios] = useState(false);
+  const [premiosBusqueda, setPremiosBusqueda] = useState('');
+  const [premiosResultado, setPremiosResultado] = useState(null); // { persona, standsCompletados, premios } | null
+  const [premiosCargando, setPremiosCargando] = useState(false);
+  const [premiosError, setPremiosError] = useState('');
 
   const sheetRef = useRef(null);
   const dragStateRef = useRef({ startY: 0, dragging: false });
@@ -195,6 +205,48 @@ function ScannerView({ usuario, onLogout }) {
     procesarCodigo(code);
   }
 
+  async function buscarPremiosDePersona() {
+    const idValue = premiosBusqueda.trim();
+    if (!idValue) {
+      setPremiosError('Ingresa el número de celular de la persona.');
+      return;
+    }
+    setPremiosCargando(true);
+    setPremiosError('');
+    setPremiosResultado(null);
+    try {
+      const resultado = await buscarPersonaConPremios(idValue);
+      if (!resultado) {
+        setPremiosError('No se encontró ninguna persona registrada con ese número.');
+        return;
+      }
+      setPremiosResultado(resultado);
+    } catch (err) {
+      console.error(err);
+      setPremiosError('Ocurrió un error al buscar. Intenta de nuevo.');
+    } finally {
+      setPremiosCargando(false);
+    }
+  }
+
+  async function entregarPremio(premioId) {
+    if (!premiosResultado) return;
+    try {
+      const actualizado = await marcarPremioEntregado(premiosResultado.persona.id, premioId);
+      setPremiosResultado(prev => ({ ...prev, premios: actualizado }));
+    } catch (err) {
+      console.error(err);
+      setPremiosError('No se pudo marcar como entregado. Intenta de nuevo.');
+    }
+  }
+
+  function cerrarVistaPremios() {
+    setVistaPremios(false);
+    setPremiosBusqueda('');
+    setPremiosResultado(null);
+    setPremiosError('');
+  }
+
   async function abrirDetalle(diaId) {
     setDetalleDia(diaId);
     setDetalleCargando(true);
@@ -323,6 +375,15 @@ function ScannerView({ usuario, onLogout }) {
             <div className="staff-header-greeting">Bienvenido al staff</div>
             <div className="staff-header-name">{nombreDesdeCorreo(usuario?.email)}</div>
           </div>
+          <button className="staff-detalle-download" onClick={() => setVistaPremios(true)} aria-label="Entregar premios">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 4h10v4.2c0 2.87-2.24 5.2-5 5.2s-5-2.33-5-5.2V4Z" fill="#fff"/>
+              <path d="M7 5H4.5A1.5 1.5 0 0 0 3 6.5v.75C3 9.55 4.68 11 6.75 11H7" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M17 5h2.5A1.5 1.5 0 0 1 21 6.5v.75C21 9.55 19.32 11 17.25 11H17" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M12 13.4v3.1" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M8.3 20h7.4c.3-1.2-.4-2.2-1.6-2.4a12 12 0 0 0-4.2 0c-1.2.2-1.9 1.2-1.6 2.4Z" fill="#fff"/>
+            </svg>
+          </button>
           <button className="staff-logout" onClick={onLogout} aria-label="Cerrar sesión">
             <img src="/media/LogOut.svg" alt="" />
           </button>
@@ -364,6 +425,10 @@ function ScannerView({ usuario, onLogout }) {
           <span className="staff-scanner-corner bl" />
           <span className="staff-scanner-corner br" />
         </div>
+
+        {MODO_PRUEBA && (
+          <div className="test-banner">MODO PRUEBA — datos de ejemplo, no conectado a la base de datos real</div>
+        )}
 
         <div id="manualTest" style={{ display: 'block' }}>
           <div className="staff-manual-title">
@@ -472,6 +537,71 @@ function ScannerView({ usuario, onLogout }) {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+      {vistaPremios && (
+        <div className="staff-detalle-overlay" onClick={e => { if (e.target === e.currentTarget) cerrarVistaPremios(); }}>
+          <div className="staff-detalle-panel">
+            <span className="staff-detalle-handle" />
+            <div className="staff-detalle-header">
+              <div>
+                <div className="staff-detalle-eyebrow">Ruta Winner</div>
+                <div className="staff-detalle-title">Entrega de premios</div>
+              </div>
+            </div>
+
+            <div className="manual-row" style={{ marginBottom: 10 }}>
+              <input
+                className="login-input staff-login-input"
+                placeholder="Número de celular de la persona"
+                value={premiosBusqueda}
+                onChange={e => setPremiosBusqueda(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') buscarPremiosDePersona(); }}
+              />
+              <button className="staff-login-button" onClick={buscarPremiosDePersona} disabled={premiosCargando}>
+                {premiosCargando ? 'Buscando...' : 'Buscar'}
+              </button>
+            </div>
+            {premiosError && <div className="error-msg" style={{ display: 'block' }}>{premiosError}</div>}
+
+            {premiosResultado && (
+              <div className="staff-detalle-lista">
+                <div className="staff-premios-persona">
+                  <span className="staff-premios-persona-nombre">{premiosResultado.persona.nombre}</span>
+                  <span className="staff-premios-persona-progreso">
+                    {premiosResultado.standsCompletados.length} de {STANDS.length} stands
+                  </span>
+                </div>
+
+                {!premiosResultado.premios.confirmado && (
+                  <div className="staff-detalle-vacio">
+                    Esta persona todavía no ha confirmado su selección de premios.
+                  </div>
+                )}
+
+                {premiosResultado.premios.confirmado && STANDS
+                  .filter(stand => premiosResultado.premios.seleccionados.includes(stand.id))
+                  .map(stand => {
+                    const entregado = premiosResultado.premios.entregados?.includes(stand.id);
+                    return (
+                      <div key={stand.id} className="staff-detalle-item">
+                        <div className="staff-detalle-row-top">
+                          <span className="staff-detalle-nombre">{stand.premio.nombre}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={`staff-premio-entregar-btn ${entregado ? 'hecho' : ''}`}
+                          onClick={() => entregarPremio(stand.id)}
+                          disabled={entregado}
+                        >
+                          {entregado ? '✓ Entregado' : 'Marcar como entregado'}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         </div>
       )}

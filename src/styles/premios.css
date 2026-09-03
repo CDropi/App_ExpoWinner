@@ -1,0 +1,341 @@
+/* ============================================================
+   premios.css — pantalla de redimir premios: encabezado, panel
+   sólido y tarjetas de premio.
+   ============================================================ */
+
+.trofeo-panel-test{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed rgba(255,255,255,.2);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.trofeo-panel-test-label{
+  font-size:10.5px;
+  color:rgba(255,255,255,.45);
+  text-align:center;
+  margin-bottom:2px;
+}
+.trofeo-panel-test-btn{
+  width:100%;
+  padding:9px 0;
+  border-radius:999px;
+  border:1px dashed rgba(255,255,255,.35);
+  background:transparent;
+  color:rgba(255,255,255,.75);
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:11.5px;
+  cursor:pointer;
+}
+.trofeo-panel-test-btn:hover,
+.trofeo-panel-test-btn:focus,
+.trofeo-panel-test-btn:active{
+  background:rgba(255,255,255,.06);
+  outline:none;
+  transform:none;
+}
+.trofeo-panel-test-btn.secundario{color:rgba(255,255,255,.5);}
+
+
+/* Sin padding inferior: el que cierra la pantalla es el del panel sólido.
+   Antes: padding:8px 4px 24px; */
+.premios-view{padding:8px 4px 0;}
+
+/* Fila superior: igual que la de la política de datos — regresar a la
+   izquierda, logo a la derecha, a la misma altura. */
+.premios-barra-superior{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+}
+.premios-logo{
+  height:34px;
+  width:auto;
+  object-fit:contain;
+  flex-shrink:0;
+}
+
+/* Título y contador centrados, como el encabezado de la referencia. */
+.premios-encabezado{
+  text-align:center;
+  margin:16px 0 14px;
+}
+.premios-titulo{
+  font-family:'Tusker';
+  font-size:40px;
+  line-height:1.1;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--paper);
+  margin:0;
+}
+/* Contador en píldora de vidrio oscuro, como el chip del "1/12" de la
+   referencia. Antes era solo texto naranja, que sobre el fondo naranja de la
+   app quedaba ilegible. */
+
+
+/* Panel de la sección de tarjetas. A diferencia del encabezado (que deja ver
+   el fondo por defecto de la app), este bloque va con un color sólido para
+   marcar el corte entre las dos secciones.
+   El ancho se lleva a 100vw con la técnica de margin-left:50% + translateX
+   para que llegue a los bordes de la pantalla sin depender del padding de
+   .app-scroll (que cambia según el ancho del dispositivo).
+   Abajo se come el padding de .app-scroll y añade el suyo, para que el color
+   corra hasta el final de la pantalla y el contenido igual libre la barra de
+   navegación. */
+.premios-panel{
+  position:relative;
+  width:100vw;
+  margin-left:50%;
+  transform:translateX(-50%);
+  margin-top:10px;
+  padding:20px 18px 40px;
+  border-radius:26px 26px 0 0;
+  border-top:1px solid rgba(255,255,255,.08);
+  background:#171310;
+  /* Crece para llenar lo que sobre de pantalla cuando el contenido es corto
+     (por ejemplo el estado bloqueado), así el color nunca corta a media
+     pantalla dejando ver el fondo por debajo. */
+  flex:1 0 auto;
+}
+
+/* Solo en esta pantalla se anula el padding inferior de .app-scroll: el
+   respiro final ya lo pone el propio panel, y si se dejara quedaría una
+   franja del fondo por debajo del color sólido.
+   Los dos flex de abajo son los que permiten que el panel se estire. */
+/* Va con las dos clases juntas por especificidad: premios.css se carga ANTES
+   de ingreso.css (Ingreso.jsx importa las vistas antes que su hoja de
+   estilos), así que con una sola clase ganaba .app-scroll{padding:28px 18px 85px}
+   y quedaban 85px de fondo por debajo del panel oscuro al llegar al final.
+   Versión anterior (no funcionaba en el build):
+.app-scroll--premios{padding-bottom:0;}
+*/
+.app-scroll.app-scroll--premios{padding-bottom:0;}
+.app-scroll--premios > .premios-view{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+.premios-sub{
+  font-size:10px;
+  color:rgba(255,255,255,.7);
+  line-height:1.5;
+  text-align:center;
+  margin:10px 0;
+}
+.premios-sub strong{color:#fff;}
+
+/* Estado bloqueado: panel de vidrio con candado, en vez del texto suelto. */
+.premios-bloqueado{
+  padding:32px 20px;
+  text-align:center;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.03) 55%,
+    rgba(255,255,255,.07) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.20), 0 10px 24px rgba(0,0,0,.30);
+}
+.premios-bloqueado-icono{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:52px;height:52px;
+  margin:0 auto 14px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+}
+.premios-bloqueado-icono img{width:22px;height:22px;opacity:.85;}
+.premios-bloqueado-texto{
+  font-size:13.5px;
+  color:rgba(255,255,255,.7);
+  line-height:1.5;
+  max-width:280px;
+  margin:0 auto 12px;
+}
+.premios-bloqueado-progreso{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  color:var(--brand-orange);
+  font-weight:700;
+  margin:0;
+}
+
+/* Grilla de dos columnas, tipo tablero de logros. Con 7 marcas la última
+   tarjeta queda sola: se centra a media columna para que no se estire a
+   todo el ancho y rompa el ritmo de la grilla. */
+.premios-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+/* Antes, con 7 marcas, la última tarjeta se centraba a media columna. Ahora
+   se deja caer en su columna natural (la izquierda), como cualquier otra. */
+
+/* Tarjeta de premio: columna centrada (medalla, nombre, descripción) con el
+   check como insignia en la esquina superior derecha. */
+/* Antes la tarjeta era una columna centrada (medalla arriba, textos debajo).
+   Ahora es un bloque alineado a la izquierda: una fila con isotipo + nombre +
+   círculo de selección, y la descripción debajo. */
+.premio-card{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  width:100%;
+  text-align:left;
+  padding:14px 13px 15px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.03) 55%,
+    rgba(255,255,255,.06) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(8px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.18);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* base.css pinta el fondo dorado y aplica scale(.98) en hover/focus/active:
+   hay que redeclarar fondo y transform en los tres estados. */
+.premio-card:hover,
+.premio-card:focus,
+.premio-card:active{
+  outline:none;
+  transform:none;
+  background:linear-gradient(160deg,
+    rgba(255,255,255,.10) 0%,
+    rgba(255,255,255,.03) 55%,
+    rgba(255,255,255,.06) 100%);
+}
+
+/* Elegido: borde naranja + un leve tinte, la señal fuerte del estado. */
+.premio-card.elegido{
+  border-color:var(--brand-orange);
+  background:linear-gradient(160deg,
+    rgba(237,111,45,.20) 0%,
+    rgba(237,111,45,.06) 55%,
+    rgba(237,111,45,.14) 100%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.20), 0 0 18px rgba(237,111,45,.25);
+}
+.premio-card.elegido:hover,
+.premio-card.elegido:focus,
+.premio-card.elegido:active{
+  background:linear-gradient(160deg,
+    rgba(237,111,45,.20) 0%,
+    rgba(237,111,45,.06) 55%,
+    rgba(237,111,45,.14) 100%);
+}
+
+/* Confirmado: ya no se puede tocar, así que no lleva cursor de mano. */
+.premio-card.confirmado{cursor:default;}
+.premio-card.confirmado{
+  border-color:var(--brand-orange);
+  background:linear-gradient(160deg,
+    rgba(237,111,45,.18) 0%,
+    rgba(237,111,45,.05) 55%,
+    rgba(237,111,45,.12) 100%);
+}
+
+/* Fila superior: isotipo + nombre + círculo de selección. */
+.premio-card-cabecera{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  width:100%;
+}
+
+/* Círculo de selección. Siempre visible: vacío (solo el aro) cuando no está
+   elegido, y relleno naranja con el chulo blanco cuando sí. El chulo se
+   oculta con opacidad en vez de quitarlo del DOM para que la transición sea
+   suave y el círculo no cambie de tamaño. */
+.premio-card-check{
+  flex-shrink:0;
+  margin-left:auto;
+  width:20px;height:20px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1.5px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.04);
+  transition:background .15s ease, border-color .15s ease;
+}
+.premio-card-check img{
+  display:block;
+  width:13px;height:13px;
+  opacity:0;
+  transition:opacity .15s ease;
+}
+.premio-card.elegido .premio-card-check,
+.premio-card.confirmado .premio-card-check{
+  border-color:var(--brand-orange);
+  background:var(--brand-orange);
+}
+.premio-card.elegido .premio-card-check img,
+.premio-card.confirmado .premio-card-check img{opacity:1;}
+
+/* El isotipo ahora va suelto en la fila, sin el círculo de vidrio que lo
+   encerraba. Todo el bloque de la medalla queda comentado por si se necesita
+   revertir:
+
+    Medalla: círculo de vidrio con el isotipo de la marca. El resplandor toma
+      el color de la marca vía la variable --marca que llega desde el JSX. */
+.premio-card-isotipo{
+  display:block;
+  flex-shrink:0;
+  width:30px;height:30px;
+  object-fit:contain;
+}
+/* Fallback si alguna marca no tiene isotipo en config.js */
+.premio-card-inicial{
+  flex-shrink:0;
+  width:30px;
+  text-align:center;
+  font-family:'Tusker',sans-serif;
+  font-size:20px;
+  color:rgba(255,255,255,.6);
+}
+
+.premio-card-nombre{
+  font-family: 'Montserrat';
+  flex:1;
+  min-width:0;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.2;
+  color:var(--paper);
+}
+.premio-card-desc{
+  font-family: 'Montserrat';
+  font-size:11px;
+  font-weight: 100;
+  color:rgba(255,255,255,.6);
+  line-height:1.35;
+}
+/* El `**texto**` de config.js llega como <strong>. Como .premio-card-desc va
+   en font-weight:100, el "bolder" que el navegador le da por defecto al
+   <strong> se calcula relativo a ese 100 y sale en 400, casi sin diferencia.
+   Por eso se declara el peso a mano. */
+.premio-card-desc strong{
+  font-weight:700;
+  color:#fff;
+}
+.premios-confirmar-btn{width:100%;color:#fff;}
+.premios-confirmar-btn:hover,
+.premios-confirmar-btn:focus,
+.premios-confirmar-btn:active{color:#fff;}
+.premios-confirmar-btn:disabled{opacity:.4;cursor:default;color:#fff;}
+

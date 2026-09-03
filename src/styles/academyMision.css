@@ -1,0 +1,1646 @@
+/* ============================================================
+   academyMision.css — pantallas de las misiones de Academy (las que
+   se abren desde "Comencemos" en una estación del camino).
+
+   A diferencia del resto de Academy, estas pantallas van sobre fondo
+   claro, así que tienen su propia hoja de estilos y no reutilizan
+   .academy-view ni .academy-fondo.
+   ============================================================ */
+
+/* Pantalla completa, con scroll propio: va dentro de .app-scroll--full, que
+   no pone padding ni ancho máximo. */
+.academy-mision{
+  position:relative;
+  min-height:100%;
+  /* OBLIGATORIO, no decorativo: esta pantalla es un flex item de
+     .app-scroll (columna). Por defecto un flex item lleva flex-shrink:1, así
+     que cuando el contenido pasaba del alto de la pantalla el navegador
+     comprimía la caja hasta el alto visible y el contenido se salía por
+     debajo. El padding de abajo quedaba dentro de esa caja comprimida, o sea
+     por encima del contenido desbordado, y por eso el último bloque se veía
+     pegado al borde inferior aunque el padding estuviera puesto. */
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  /* El aire de abajo es generoso a propósito: en las pantallas largas el
+     último bloque quedaba pegado al borde inferior.
+     Va en una variable porque la escala de la pantalla de análisis lo tiene
+     que anular con un margen negativo para llegar a sangre hasta el borde: si
+     los dos números no son el mismo, queda una franja blanca abajo.
+     52px resultó demasiado: le metía scroll a las pantallas que antes cabían
+     justas. Con 32 más el padding propio del panel (26px) queda aire de sobra
+     al final de las pantallas largas.
+     Versiones anteriores: 28px (muy pegado) y 52px (metía scroll). */
+  --academy-mision-abajo:calc(32px + env(safe-area-inset-bottom));
+  padding:calc(16px + env(safe-area-inset-top)) 18px var(--academy-mision-abajo);
+}
+
+/* El fondo va en una capa fija, no en el elemento.
+   El elemento solo mide lo que mide su contenido, así que al hacer scroll (o
+   con el rebote de iOS) se alcanzaba a ver por detrás el fondo oscuro de la
+   app: el fondo "se cortaba". Una capa position:fixed cubre siempre la
+   pantalla completa, sin importar el scroll ni el alto del contenido.
+   El color se deja TAMBIÉN en el elemento, más abajo, como respaldo. */
+.academy-mision::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+.academy-mision--claro::before{background:#fff;}
+.academy-mision--naranja::before{background:#F44F0D;}
+.academy-mision--gris::before{background:#E2E2E2;}
+
+/* Fondos que vienen como imagen (el sobre del Centro de novedades). La
+   imagen llega en --fondo-imagen desde el JSX y la pinta la misma capa fija.
+   Va con background-size:100% 100% y NO con cover a propósito: el PNG está
+   hecho a 1080x1920 con la forma ya ubicada, así que estirándolo a la
+   pantalla completa los porcentajes del diseño coinciden exactos en
+   cualquier celular. Con cover, el recorte movería el sobre y el texto
+   dejaría de caer adentro. La deformación es imperceptible porque la imagen
+   es una forma plana, sin caras ni texto. */
+.academy-mision--imagen::before{
+  /* Absoluta y no fija (a diferencia de las capas de color): tiene que quedar
+     en el MISMO sistema de coordenadas que el bloque de texto, que se ubica
+     con top:60% del elemento. Si la imagen se estirara al viewport y el
+     elemento fuera más alto, el texto y el sobre se desalinearían. */
+  position:absolute;
+  inset:0;
+  background-image:var(--fondo-imagen);
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+}
+/* Y el elemento tiene que quedar TRANSPARENTE, o su propio color tapa la
+   imagen. La capa va en z-index:-1, y el orden de pintado del navegador es:
+   fondo del contexto de apilamiento -> capas con z-index negativo -> fondos
+   de los elementos en flujo -> contenido. O sea que el naranja de
+   .academy-mision--naranja, que está en el elemento, se pinta DESPUÉS y por
+   encima de la capa. El color de respaldo lo sigue poniendo la capa fija
+   (.academy-mision--naranja::before), así que las zonas transparentes del PNG
+   se ven naranjas igual. */
+.academy-mision.academy-mision--imagen{background:transparent;}
+
+/* El fondo lo define cada paso (campo `fondo` en academyDatos.js): unos van
+   sobre blanco y otros sobre el naranja de Academy.
+   Versión anterior (fondo blanco fijo en .academy-mision): background:#fff; */
+.academy-mision--claro{background:#fff;}
+.academy-mision--naranja{background:#F44F0D;}
+.academy-mision--gris{background:#E2E2E2;}
+
+/* ---- Barra superior: logo + salida ---- */
+.academy-mision-barra{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  max-width:420px;
+  flex-shrink:0;
+}
+/* El PNG del logo ya trae el badge (fondo de color y esquina redondeada), así
+   que va suelto y solo se le da el tamaño.
+   Versión anterior, cuando solo existía el logo blanco y había que meterlo en
+   un badge naranja a mano:
+.academy-mision-logo{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:12px;background:#ED6F2D;}
+.academy-mision-logo img{display:block;width:34px;height:auto;}
+*/
+.academy-mision-logo{
+  display:block;
+  width:48px;
+  height:auto;
+  flex-shrink:0;
+}
+
+/* Los dos botones de salida, juntos a la derecha de la barra: la flecha
+   (una pantalla atrás) y la casa (salir de Academy). */
+.academy-mision-acciones{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-shrink:0;
+}
+/* El botón de regresar es de vidrio claro (está pensado para fondos
+   oscuros): sobre blanco se le sube el contraste. El icono es un SVG blanco,
+   así que se oscurece con un filtro en vez de duplicar el archivo. */
+/* Sobre fondo claro (blanco o gris) el botón de vidrio no se ve: está pensado
+   para fondos oscuros. Se le pone fondo propio y el icono, que es un SVG
+   blanco, se oscurece con un filtro en vez de duplicar el archivo. */
+.academy-mision--claro .academy-mision-barra .btn-regresar,
+.academy-mision--gris .academy-mision-barra .btn-regresar{
+  border-color:rgba(0,0,0,.08);
+  box-shadow:none;
+}
+.academy-mision--claro .academy-mision-barra .btn-regresar{background:#F1F1F1;}
+.academy-mision--claro .academy-mision-barra .btn-regresar:hover,
+.academy-mision--claro .academy-mision-barra .btn-regresar:focus,
+.academy-mision--claro .academy-mision-barra .btn-regresar:active{
+  background:#E9E9E9;
+  box-shadow:none;
+}
+/* En el fondo gris el botón va blanco (al contrario que en el blanco, donde
+   va gris): es la única forma de que se despegue del fondo. */
+.academy-mision--gris .academy-mision-barra .btn-regresar{
+  background:#fff;
+  box-shadow:0 3px 10px rgba(0,0,0,.10);
+}
+.academy-mision--gris .academy-mision-barra .btn-regresar:hover,
+.academy-mision--gris .academy-mision-barra .btn-regresar:focus,
+.academy-mision--gris .academy-mision-barra .btn-regresar:active{
+  background:#F7F7F7;
+  box-shadow:0 3px 10px rgba(0,0,0,.10);
+}
+.academy-mision--claro .academy-mision-barra .btn-regresar img,
+.academy-mision--gris .academy-mision-barra .btn-regresar img{filter:brightness(.35);}
+
+/* ---- Codi ---- */
+.academy-mision-codi{
+  flex-shrink:0;
+  display:block;
+  width:auto;
+  max-width:52%;
+  max-height:100px;
+  object-fit:contain;
+  margin:10px auto 0;
+}
+
+/* ---- Barra de avance con la medalla al final ---- */
+.academy-mision-progreso{
+  position:relative;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  width:80%;
+  max-width:420px;
+  /* Deja el carril del ancho completo menos lo que ocupa la medalla, que va
+     montada sobre su extremo derecho. */
+  padding-right:26px;
+  margin:9px 0 28px;
+}
+.academy-mision-progreso-carril{
+  flex:1;
+  min-width:0;
+  height:22px;
+  padding:4px;
+  border-radius:999px;
+  background:#F2F2F2;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.08);
+}
+.academy-mision-progreso-barra{
+  height:100%;
+  min-width:16px;
+  border-radius:999px;
+  /* Mismo verde de la barra del camino, para que se lea como el mismo
+     avance. */
+  background:linear-gradient(90deg,#23913C 0%,#4FCC66 100%);
+  transition:width .35s ease;
+}
+.academy-mision-progreso-medalla{
+  position:absolute;
+  right:0;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:linear-gradient(160deg,#FF8A3D 0%,#ED6F2D 100%);
+  border:3px solid #fff;
+  box-shadow:0 6px 16px rgba(237,111,45,.38);
+}
+.academy-mision-progreso-medalla-icono{
+  width:24px;
+  height:24px;
+  background:#fff;
+  -webkit-mask:url('/media/Medalla.svg') no-repeat center / contain;
+  mask:url('/media/Medalla.svg') no-repeat center / contain;
+}
+
+/* ---- Panel del contenido del paso ---- */
+.academy-mision-panel{
+  width:100%;
+  max-width:320px;
+  padding:22px 16px 26px;
+  border-radius:22px;
+  background:#FAFAFA;
+  border:1px solid rgba(0,0,0,.04);
+  box-shadow: 0px 0px 8px 5px rgba(0, 0, 0, .1);
+}
+
+.academy-mision-titulo{
+  margin:0 0 18px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:15px;
+  color:#9A9A9A;
+}
+/* La segunda línea del título va en naranja y en negrilla (llega como
+   <strong> desde el **texto** de academyDatos.js). */
+.academy-mision-titulo strong{
+  display:inline-block;
+  font-weight:800;
+  font-size:17px;
+  color:#ED6F2D;
+}
+
+.academy-mision-vacio{
+  margin:0;
+  text-align:center;
+  font-size:12.5px;
+  color:#8A8A8A;
+}
+
+/* ---- Grilla de productos ---- */
+.academy-mision-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+
+.academy-producto{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  padding:8px 8px 10px;
+  border-radius:14px;
+  background:#fff;
+  box-shadow: 0px 0px 4px 3px rgba(0, 0, 0, .08);
+}
+
+/* Recuadro de la foto: relación fija para que las cuatro tarjetas queden del
+   mismo alto aunque las imágenes vengan en tamaños distintos. */
+.academy-producto-foto{
+  position:relative;
+  width:100%;
+  aspect-ratio:1 / 1;
+  border-radius:10px;
+  overflow:hidden;
+  /* Las imágenes de producto vienen con fondo blanco: si el recuadro fuera
+     gris se verían bandas a los lados al usar object-fit:contain. */
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.academy-producto-foto img{
+  width:100%;
+  height:100%;
+  /* contain y no cover: las imágenes que entregó diseño ya vienen encuadradas
+     y con cover se les recortarían los bordes. */
+  object-fit:contain;
+}
+.academy-producto-foto-vacia{
+  padding:0 8px;
+  text-align:center;
+  font-size:9.5px;
+  line-height:1.3;
+  color:#B0B0B0;
+}
+
+/* El corazón ya viene dibujado dentro de las imágenes de producto que entregó
+   diseño, así que la pantalla no lo pone por separado. La regla queda por si
+   algún día llegan las fotos sin él (Corazon.svg sigue en public/media):
+.academy-producto-corazon{
+  align-self:flex-end;
+  width:15px;
+  height:15px;
+  margin:8px 2px 0;
+  background:#C9C9C9;
+  -webkit-mask:url('/media/Corazon.svg') no-repeat center / contain;
+  mask:url('/media/Corazon.svg') no-repeat center / contain;
+}
+*/
+
+/* Píldora naranja de "Vender con Dropi". Se redeclara todo en los tres
+   estados por las reglas genéricas de button de base.css. */
+.academy-producto-btn{
+  width:100%;
+  margin-top:8px;
+  padding:7px 6px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:9.5px;
+  letter-spacing:.02em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 6px 14px -6px rgba(169,69,15,.9);
+}
+.academy-producto-btn:hover,
+.academy-producto-btn:focus,
+.academy-producto-btn:active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+.academy-producto-btn:active{transform:scale(.98);}
+
+/* Celulares angostos: la grilla se aprieta, así que todo baja un punto. */
+@media (max-width:360px){
+  .academy-mision-grid{gap:10px;}
+  .academy-producto{padding:7px 7px 9px;}
+  .academy-producto-btn{font-size:9px;}
+  .academy-mision-titulo{font-size:14px;}
+  .academy-mision-titulo strong{font-size:16px;}
+}
+
+/* ============================================================
+   Paso 'definirPrecio': encabezado sobre naranja, tarjeta del
+   producto elegido y panel del resumen de rentabilidad.
+   ============================================================ */
+
+.academy-mision-cabezote{
+  flex-shrink:0;
+  width:100%;
+  max-width:420px;
+  margin:16px 0 0;
+  text-align:center;
+}
+.academy-mision-cabezote-titulo{
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:15px;
+  line-height:1.3;
+  color:#fff;
+}
+.academy-mision-cabezote-sub{
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:13px;
+  line-height:1.4;
+  color:rgba(255,255,255,.94);
+}
+
+/* Tarjeta del producto elegido: la misma .academy-producto del paso anterior,
+   sola y centrada. */
+.academy-mision-producto-elegido{
+  flex-shrink:0;
+  width:148px;
+  margin:10px auto 0;
+}
+/* La píldora acá no es un botón, solo el recordatorio de lo elegido. */
+.academy-producto-btn--estatico{
+  display:block;
+  text-align:center;
+  pointer-events:none;
+}
+
+/* ---- Panel del resumen ---- */
+.academy-mision-panel--resumen{
+  margin-top:16px;
+  padding:17px 18px 15px;
+  background:#fff;
+}
+
+.academy-resumen-titulo{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  color:#2B2B2B;
+}
+.academy-resumen-sub{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:11px;
+  line-height:1.45;
+  color:#A0A0A0;
+}
+.academy-resumen-sub strong{
+  font-weight:700;
+  color:#7A7A7A;
+}
+
+/* Tabla de costos: bloque gris con un renglón por costo. */
+.academy-resumen-tabla{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:13px 14px;
+  border-radius:12px;
+  background:#F1F1F1;
+}
+.academy-resumen-fila{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:11.5px;
+  color:#6E6E6E;
+}
+.academy-resumen-fila-valor{
+  flex-shrink:0;
+  font-weight:700;
+  color:#666565;
+}
+
+/* Total: mismo formato de renglón pero en crema y naranja, para que se lea
+   como el resultado de la tabla de arriba. */
+.academy-resumen-total{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:10px;
+  padding:13px 14px;
+  border-radius:12px;
+  background:#FDF0E2;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  color:#ED6F2D;
+}
+
+.academy-resumen-pregunta{
+  margin:10px 0 3px;
+  font-family:'Montserrat';
+  font-weight:400;
+  font-size:11.5px;
+  color:#6E6E6E;
+}
+.academy-resumen-ayuda{
+  margin:0 0 12px;
+  font-family:'Montserrat';
+  font-weight:100;
+  font-size:11px;
+  color:#6E6E6E;
+}
+
+.academy-resumen-input{
+  width:100%;
+  padding:8px 16px;
+  border-radius:12px;
+  border:1px solid #F2C7B2;
+  background:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  color:#3A3A3A;
+}
+.academy-resumen-input::placeholder{
+  font-weight:700;
+  color:#CFCFCF;
+}
+.academy-resumen-input:focus{
+  outline:none;
+  border-color:#ED6F2D;
+}
+
+/* Botón de analizar. Se redeclara todo en los tres estados por las reglas
+   genéricas de button de base.css, y con :not(:disabled) para que el estado
+   apagado no se vuelva a pintar naranja al tocarlo. */
+.academy-resumen-btn{
+  width:100%;
+  margin-top:14px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.02em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 18px -8px rgba(169,69,15,.9);
+}
+.academy-resumen-btn:not(:disabled):hover,
+.academy-resumen-btn:not(:disabled):focus,
+.academy-resumen-btn:not(:disabled):active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+.academy-resumen-btn:not(:disabled):active{transform:scale(.98);}
+/* Sin precio escrito todavía: naranja apagado, como en la referencia. */
+.academy-resumen-btn:disabled{
+  cursor:not-allowed;
+  background:#F3A183;
+  color:#fff;
+  box-shadow:none;
+}
+
+@media (max-width:360px){
+  .academy-mision-cabezote-titulo{font-size:14px;}
+  .academy-mision-cabezote-sub{font-size:11px;}
+  .academy-mision-producto-elegido{width:138px;}
+}
+
+/* ============================================================
+   Paso 'analisisPrecio': veredicto del precio (sobre blanco) y
+   escala de rangos (sobre naranja, a sangre hasta el final).
+   ============================================================ */
+
+/* ---- Tarjeta del veredicto ---- */
+.academy-analisis-tarjeta{
+  flex-shrink:0;
+  width:100%;
+  max-width:420px;
+  padding:10px 16px;
+  border-radius:20px;
+}
+.academy-analisis-titulo{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:17px;
+}
+/* Caja blanca con los cuatro números. */
+.academy-analisis-datos{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:14px;
+  border-radius:14px;
+  background:#fff;
+}
+.academy-analisis-fila{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:11px;
+  color:#7A7A7A;
+}
+.academy-analisis-fila-valor{
+  flex-shrink:0;
+  font-weight:700;
+  font-size:11.5px;
+  color:#2B2B2B;
+}
+
+/* Renglón de la competencia: va por fuera de la tarjeta, sobre el blanco de
+   la pantalla, como en la referencia. */
+.academy-analisis-competencia{
+  flex-shrink:0;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  width:100%;
+  max-width:380px;
+  margin-top:14px;
+  padding:11px 14px;
+  border-radius:12px;
+  background:#FDF0E2;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  color:#ED6F2D;
+}
+.academy-analisis-competencia-valor{flex-shrink:0;}
+
+.academy-analisis-frase{
+  flex-shrink:0;
+  width:100%;
+  max-width:340px;
+  margin:14px 0 2px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:11px;
+  line-height:1.5;
+  color:#8A8A8A;
+}
+.academy-analisis-frase strong{font-weight:800;}
+
+/* ---- Bloque naranja de la escala ----
+   Va a sangre: los márgenes negativos anulan el padding lateral de
+   .academy-mision, y flex:1 0 auto lo hace crecer hasta el final de la
+   pantalla cuando el contenido es corto. El margen inferior negativo se come
+   el padding de abajo para que el naranja llegue al borde. */
+.academy-analisis-escala-bloque{
+  position:relative;
+  flex:1 0 auto;
+  width:calc(100% + 36px);
+  /* El margen negativo se come el padding de abajo de .academy-mision para
+     que el naranja llegue al borde de la pantalla. */
+  margin:0 -18px calc(-1 * var(--academy-mision-abajo));
+  padding:0 22px var(--academy-mision-abajo);
+  background:#F44F0D;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+/* Franja blanca de arriba con las esquinas de abajo redondeadas: es lo que
+   hace que la sección blanca cierre en curva sobre el naranja. */
+.academy-analisis-curva{
+  align-self:stretch;
+  height:26px;
+  margin:0 -22px 18px;
+  border-radius:0 0 26px 26px;
+  background:#fff;
+}
+
+.academy-analisis-escala-titulo{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:14px;
+  color:#fff;
+}
+
+.academy-analisis-escala{
+  width:100%;
+  max-width:340px;
+  padding:16px 14px;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(0,0,0,.14);
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.academy-analisis-rango{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.academy-analisis-rango-valor{
+  flex:1;
+  min-width:0;
+  padding:7px 12px;
+  border-radius:999px;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:11px;
+}
+.academy-analisis-rango-etiqueta{
+  flex:0 0 86px;
+  text-align:center;
+  padding:7px 8px;
+  border-radius:999px;
+  color:#fff;
+  font-family:'Montserrat';
+  font-size:10px;
+}
+/* El rango donde cayó el precio se resalta con un aro. No está en la
+   referencia, pero es justo la pregunta que hace el título ("¿dónde está tu
+   precio?"), así que sin esto la escala no responde nada. */
+.academy-analisis-rango--actual .academy-analisis-rango-valor{
+  box-shadow:0 0 0 2px rgba(0,0,0,.18);
+}
+
+/* ---- Paleta de los cinco rangos ---- */
+.academy-analisis-rango--perdida .academy-analisis-rango-valor{background:#FADDE2;color:#A8374B;}
+.academy-analisis-rango--perdida .academy-analisis-rango-etiqueta{background:#E9647A;}
+.academy-analisis-rango--minimo .academy-analisis-rango-valor{background:#FCF0CE;color:#8A6410;}
+.academy-analisis-rango--minimo .academy-analisis-rango-etiqueta{background:#EFC44C;}
+.academy-analisis-rango--rentable .academy-analisis-rango-valor{background:#DCF2E1;color:#2F7A45;}
+.academy-analisis-rango--rentable .academy-analisis-rango-etiqueta{background:#5FBF7A;}
+.academy-analisis-rango--espejo .academy-analisis-rango-valor{background:#D9EAF7;color:#26638C;}
+.academy-analisis-rango--espejo .academy-analisis-rango-etiqueta{background:#4EA3D8;}
+.academy-analisis-rango--premium .academy-analisis-rango-valor{background:#E7DDF5;color:#5B3F91;}
+.academy-analisis-rango--premium .academy-analisis-rango-etiqueta{background:#9C7BC9;}
+
+/* ---- Color de la tarjeta y del veredicto según el rango ---- */
+.academy-analisis-tarjeta--perdida{background:#FBE7EA;}
+.academy-analisis-tarjeta--perdida .academy-analisis-titulo{color:#C0435A;}
+.academy-analisis-frase--perdida strong{color:#C0435A;}
+
+.academy-analisis-tarjeta--minimo{background:#FDF5DC;}
+.academy-analisis-tarjeta--minimo .academy-analisis-titulo{color:#A87B14;}
+.academy-analisis-frase--minimo strong{color:#A87B14;}
+
+.academy-analisis-tarjeta--rentable{background:#E8F7DC;}
+.academy-analisis-tarjeta--rentable .academy-analisis-titulo{color:#4E9E2C;}
+.academy-analisis-frase--rentable strong{color:#4E9E2C;}
+
+.academy-analisis-tarjeta--espejo{background:#E1EFF9;}
+.academy-analisis-tarjeta--espejo .academy-analisis-titulo{color:#2E7BAE;}
+.academy-analisis-frase--espejo strong{color:#2E7BAE;}
+
+.academy-analisis-tarjeta--premium{background:#EDE5F7;}
+.academy-analisis-tarjeta--premium .academy-analisis-titulo{color:#6E51A5;}
+.academy-analisis-frase--premium strong{color:#6E51A5;}
+
+/* Punto de equilibrio: no es pérdida pero tampoco ganancia, así que va en
+   ámbar, entre el rojo y el amarillo. */
+.academy-analisis-tarjeta--equilibrio{background:#FBEDDC;}
+.academy-analisis-tarjeta--equilibrio .academy-analisis-titulo{color:#B8631A;}
+.academy-analisis-frase--equilibrio strong{color:#B8631A;}
+
+/* Explicación de por qué la zona es buena o mala: va más pequeña y en gris
+   debajo del remate en negrilla. */
+.academy-analisis-detalle{
+  display:block;
+  margin-top:8px;
+  font-weight:400;
+  font-size:10.5px;
+  line-height:1.5;
+  color:#9A9A9A;
+}
+
+/* Botón de continuar (no está en la referencia; ver comentario en el JSX). */
+.academy-analisis-btn{
+  width:100%;
+  max-width:340px;
+  margin-top:20px;
+  padding:13px 14px;
+  border-radius:999px;
+  border:none;
+  background:#fff;
+  color:#ED6F2D;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:13px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 20px rgba(0,0,0,.18);
+}
+.academy-analisis-btn:hover,
+.academy-analisis-btn:focus,
+.academy-analisis-btn:active{
+  outline:none;
+  background:#fff;
+  color:#ED6F2D;
+}
+.academy-analisis-btn:active{transform:scale(.98);}
+
+@media (max-width:360px){
+  .academy-analisis-rango-etiqueta{flex-basis:78px;font-size:9.5px;}
+  .academy-analisis-rango-valor{font-size:10.5px;padding:7px 10px;}
+  .academy-analisis-titulo{font-size:16px;}
+}
+
+/* ============================================================
+   Paso 'portada': la bienvenida de una misión.
+   ============================================================ */
+
+/* Naranja con el damero, la misma receta de .academy-fondo en academy.css.
+   OJO: son dos copias del mismo degradado. Va repetido y no reutilizando
+   .academy-fondo porque esa clase es una capa absoluta con z-index y aquí
+   habría que subir todo el contenido por encima; el riesgo de que algo quede
+   tapado no vale el ahorro. Si se cambia el damero, hay que cambiarlo en los
+   dos lados. */
+/* La capa fija del damero (ver .academy-mision::before). Al ser fija, el
+   patrón se queda quieto mientras el contenido hace scroll. */
+.academy-mision--damero::before,
+.academy-mision--damero{
+  background-color:#F44F0D;
+  background-image:
+    conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.022) 0 25%,
+      transparent 0 50%,
+      rgba(255,255,255,.022) 0 75%,
+      transparent 0);
+  background-size:68px 68px;
+  background-position:center bottom;
+}
+
+/* Barra con el logo centrado: los dos botones de salida se sacan del flujo y
+   se anclan a la derecha, así el logo queda centrado contra el ancho completo
+   de la pantalla y no contra el espacio que sobra. */
+.academy-mision-barra--centrada{
+  position:relative;
+  justify-content:center;
+}
+.academy-mision-barra--centrada .academy-mision-acciones{
+  position:absolute;
+  top:0;
+  right:0;
+}
+/* El aire de arriba se le da SOLO al logo, no a la barra: los dos botones
+   están posicionados contra el borde superior de la barra y tienen que
+   quedar a la misma altura que en las demás pantallas. Si el margen fuera de
+   la barra, se los llevaría con él. */
+.academy-mision-barra--centrada .academy-mision-logo{
+  width:76px;
+  margin-top:66px;
+}
+
+.academy-portada{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  max-width:420px;
+}
+
+.academy-portada-titulo{
+  margin:26px 0 8px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:15px;
+  letter-spacing:.03em;
+  color:#fff;
+}
+.academy-portada-sub{
+  margin:0;
+  max-width:300px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:12.5px;
+  line-height:1.45;
+  color:rgba(255,255,255,.94);
+}
+.academy-portada-sub strong{font-weight:800;}
+
+.academy-portada-personaje{
+  display:block;
+  width:auto;
+  max-width:85%;
+  max-height:330px;
+  object-fit:contain;
+  margin:25px auto;
+}
+
+/* Botón verde de la referencia. Se redeclara todo en los tres estados por las
+   reglas genéricas de button de base.css. */
+.academy-portada-btn{
+  margin: 0;
+  padding:8px 34px;
+  border-radius:999px;
+  border:none;
+  background:#5DC264;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 10px 22px -8px rgba(0,0,0,.35);
+}
+.academy-portada-btn:hover,
+.academy-portada-btn:focus,
+.academy-portada-btn:active{
+  outline:none;
+  background:#5DC264;
+  color:#fff;
+}
+.academy-portada-btn:active{transform:scale(.98);}
+
+@media (max-width:360px){
+  .academy-portada-titulo{font-size:14px;}
+  .academy-portada-sub{font-size:12px;}
+  .academy-portada-personaje{max-height:280px;}
+}
+
+/* ============================================================
+   Paso 'analisisTransportadoras': las estadísticas para comparar
+   transportadoras antes de ordenarlas por prioridad.
+   ============================================================ */
+
+.academy-mision-panel--transportadoras{
+  margin-top:22px;
+  background:#fff;
+}
+
+.academy-transportadoras{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.academy-transportadora{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:10px;
+  border-radius:14px;
+  background:#EFEFEF;
+}
+
+/* Cabecera: icono y nombre en una fila, como título de la tarjeta.
+   Versión anterior (icono y nombre apilados en una columna a la izquierda,
+   con los datos en la mitad derecha; dejaba los datos muy pequeños):
+.academy-transportadora{flex-direction:row;align-items:flex-start;gap:10px;}
+.academy-transportadora-marca{flex-shrink:0;display:flex;flex-direction:column;align-items:center;width:74px;}
+.academy-transportadora-tarjeta{width:74px;height:66px;}
+.academy-transportadora-nombre{margin-top:-9px;}
+*/
+.academy-transportadora-cabecera{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.academy-transportadora-tarjeta{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  background:#fff;
+}
+/* El SVG del camión es blanco: se pinta naranja con máscara, como el resto de
+   los iconos del proyecto. */
+.academy-transportadora-icono{
+  width:26px;
+  height:26px;
+  background:#ED6F2D;
+  -webkit-mask:var(--icono) no-repeat center / contain;
+  mask:var(--icono) no-repeat center / contain;
+}
+.academy-transportadora-nombre{
+  padding:5px 11px;
+  border-radius:7px;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  line-height:1.2;
+}
+
+/* Las tres filas de datos, ahora a todo el ancho de la tarjeta. */
+.academy-transportadora-datos{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.academy-transportadora-fila{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:7px 10px;
+  border-radius:8px;
+  background:#F8F8F8;
+}
+.academy-transportadora-etiqueta{
+  min-width:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:11px;
+  line-height:1.3;
+  color:#ED6F2D;
+}
+.academy-transportadora-valor{
+  flex-shrink:0;
+  min-width:66px;
+  padding:5px 9px;
+  border-radius:6px;
+  background:#fff;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  color:#4A4A4A;
+}
+
+/* El flete, destacado en verde. */
+.academy-transportadora-fila--flete{background:#DCEEDB;}
+.academy-transportadora-fila--flete .academy-transportadora-etiqueta{
+  font-weight:800;
+  font-size:11.5px;
+  color:#2F7A45;
+}
+.academy-transportadora-fila--flete .academy-transportadora-valor{
+  font-weight:800;
+  color:#2F7A45;
+}
+
+/* Botón de continuar (no está en la referencia; ver comentario en el JSX). */
+.academy-transportadoras-btn{
+  width:100%;
+  margin-top:18px;
+  padding:13px 14px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 18px -8px rgba(169,69,15,.9);
+}
+.academy-transportadoras-btn:hover,
+.academy-transportadoras-btn:focus,
+.academy-transportadoras-btn:active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+.academy-transportadoras-btn:active{transform:scale(.98);}
+
+@media (max-width:360px){
+  .academy-transportadora-tarjeta{width:40px;height:40px;}
+  .academy-transportadora-icono{width:24px;height:24px;}
+  .academy-transportadora-nombre{font-size:10px;padding:4px 9px;}
+  .academy-transportadora-valor{min-width:58px;font-size:10px;}
+  .academy-transportadora-etiqueta{font-size:10px;}
+  .academy-transportadora-fila--flete .academy-transportadora-etiqueta{font-size:10.5px;}
+}
+
+/* ============================================================
+   Paso 'ordenarTransportadoras': gris arriba (título + camión) y una
+   hoja blanca abajo con las cinco filas de posiciones.
+   ============================================================ */
+
+.academy-orden-titulo{
+  flex-shrink:0;
+  margin:22px 0 0;
+  max-width:280px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:22px;
+  line-height:1.2;
+  color:#3A3A3A;
+}
+
+.academy-orden-personaje{
+  flex-shrink:0;
+  display:block;
+  width:auto;
+  max-width:88%;
+  max-height:140px;
+  object-fit:contain;
+  margin:14px auto 0;
+}
+
+/* Hoja blanca a sangre, con las esquinas de arriba redondeadas. Crece hasta
+   el final de la pantalla y el margen inferior negativo se come el padding de
+   .academy-mision para que el blanco llegue al borde. */
+.academy-orden-hoja{
+  flex:1 0 auto;
+  width:calc(100% + 36px);
+  margin:22px -18px calc(-1 * var(--academy-mision-abajo));
+  padding:22px 20px var(--academy-mision-abajo);
+  border-radius:26px 26px 0 0;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.academy-orden-instruccion{
+  margin:0 0 18px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:13px;
+  color:#4A4A4A;
+}
+
+.academy-orden-lista{
+  width:100%;
+  max-width:360px;
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+}
+
+.academy-orden-fila{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 14px;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.10);
+}
+.academy-orden-nombre{
+  min-width:0;
+  font-family:'Montserrat';
+  font-weight:700;
+  font-size:12.5px;
+  color:#3A3A3A;
+}
+
+.academy-orden-puestos{
+  flex-shrink:0;
+  display:flex;
+  align-items:flex-end;
+  gap:7px;
+}
+
+/* Cada puesto es un botón con el número arriba y el punto abajo. Se redeclara
+   todo en los tres estados por las reglas genéricas de button de base.css. */
+.academy-orden-puesto{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  margin:0;
+  padding:0;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.academy-orden-puesto:hover,
+.academy-orden-puesto:focus,
+.academy-orden-puesto:active{
+  outline:none;
+  transform:none;
+  background:transparent;
+}
+.academy-orden-puesto-numero{
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:8.5px;
+  line-height:1;
+  color:#A8A8A8;
+}
+.academy-orden-puesto-punto{
+  width:17px;
+  height:17px;
+  border-radius:50%;
+  background:#D9D9D9;
+  transition:background .15s ease;
+}
+
+/* Elegido: verde, el mismo de la barra de avance de Academy. */
+.academy-orden-puesto--elegido .academy-orden-puesto-punto{
+  background:linear-gradient(160deg,#5FD36F 0%,#2FB84B 100%);
+}
+.academy-orden-puesto--elegido .academy-orden-puesto-numero{color:#2F7A45;}
+
+/* Botón de continuar (no está en la referencia; ver comentario en el JSX).
+   Apagado hasta que todas tengan posición. */
+.academy-orden-btn{
+  width:100%;
+  max-width:360px;
+  margin-top:22px;
+  padding:13px 14px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 18px -8px rgba(169,69,15,.9);
+}
+.academy-orden-btn:not(:disabled):hover,
+.academy-orden-btn:not(:disabled):focus,
+.academy-orden-btn:not(:disabled):active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+.academy-orden-btn:not(:disabled):active{transform:scale(.98);}
+.academy-orden-btn:disabled{
+  cursor:not-allowed;
+  background:#F3A183;
+  color:#fff;
+  box-shadow:none;
+}
+
+@media (max-width:360px){
+  .academy-orden-titulo{font-size:20px;}
+  .academy-orden-nombre{font-size:11.5px;}
+  .academy-orden-puestos{gap:5px;}
+  .academy-orden-puesto-punto{width:15px;height:15px;}
+  .academy-orden-fila{padding:10px 11px;}
+}
+
+/* ============================================================
+   Paso 'rankingResultado': el ranking de referencia sobre naranja y
+   el cierre de la lección en una hoja blanca abajo.
+   ============================================================ */
+
+.academy-ranking-titulo{
+  flex-shrink:0;
+  margin:20px 0 0;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:19px;
+  line-height:1.25;
+  color:#fff;
+}
+
+.academy-ranking-personaje{
+  flex-shrink:0;
+  display:block;
+  width:auto;
+  max-width:34%;
+  max-height:110px;
+  object-fit:contain;
+  margin:10px auto 0;
+}
+
+/* Tarjeta con las filas del ranking. Se monta sobre el borde de la hoja
+   blanca de abajo: de ahí el z-index y el margen inferior negativo. */
+.academy-ranking-tarjeta{
+  position:relative;
+  z-index:2;
+  flex-shrink:0;
+  width:100%;
+  max-width:300px;
+  margin:0 auto -46px;
+  padding:14px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.academy-ranking-fila{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:14px 12px;
+  border-radius:16px;
+  background:#F1F1F1;
+  text-align:center;
+}
+/* La mejor puntuada, en verde. */
+.academy-ranking-fila--primera{background:#DFF0DC;}
+
+.academy-ranking-nombre{
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:13px;
+  color:#7A7A7A;
+}
+.academy-ranking-fila--primera .academy-ranking-nombre{color:#2F7A45;}
+
+.academy-ranking-detalle{
+  font-family:'Montserrat',sans-serif;
+  font-weight:500;
+  font-size:10.5px;
+  color:#9A9A9A;
+}
+.academy-ranking-fila--primera .academy-ranking-detalle{color:#4E9E2C;}
+
+/* Hoja blanca a sangre. El padding de arriba deja libre la parte de la
+   tarjeta que se le monta encima. */
+.academy-ranking-hoja{
+  flex:1 0 auto;
+  width:calc(100% + 36px);
+  margin:0 -18px calc(-1 * var(--academy-mision-abajo));
+  padding:62px 24px var(--academy-mision-abajo);
+  border-radius:26px 26px 0 0;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.academy-ranking-conclusion{
+  margin:0;
+  max-width:320px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:12.5px;
+  line-height:1.5;
+  color:#4A4A4A;
+}
+/* El remate va en naranja y en negrilla. */
+.academy-ranking-conclusion strong{
+  font-weight:800;
+  color:#ED6F2D;
+}
+
+/* Botón oscuro de la referencia. Se redeclara todo en los tres estados por
+   las reglas genéricas de button de base.css. */
+.academy-ranking-btn{
+  margin-top:26px;
+  padding:14px 34px;
+  border-radius:999px;
+  border:none;
+  background:#1E1E1E;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 10px 22px -10px rgba(0,0,0,.6);
+}
+.academy-ranking-btn:hover,
+.academy-ranking-btn:focus,
+.academy-ranking-btn:active{
+  outline:none;
+  background:#1E1E1E;
+  color:#fff;
+}
+.academy-ranking-btn:active{transform:scale(.98);}
+
+@media (max-width:360px){
+  .academy-ranking-titulo{font-size:17.5px;}
+  .academy-ranking-fila{padding:12px 10px;}
+  .academy-ranking-nombre{font-size:12px;}
+}
+
+/* ============================================================
+   Centro de novedades: los pasos 'retoIntro', 'casoPregunta' y
+   'misionCompletada'.
+   ============================================================ */
+
+.academy-reto-titulo{
+  flex-shrink:0;
+  margin:26px 0 0;
+  max-width:300px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:15px;
+  line-height:1.35;
+  color:#fff;
+}
+/* El segundo renglón (el que va con ** en los datos) es el que pesa. */
+.academy-reto-titulo strong{
+  display:block;
+  font-weight:700;
+  font-size:23px;
+  line-height:1.2;
+}
+.academy-reto-sub{
+  flex-shrink:0;
+  margin:0;
+  max-width:300px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:300;
+  font-size:12px;
+  color:rgba(255,255,255,.92);
+}
+.academy-reto-personaje{
+  flex-shrink:0;
+  display:block;
+  width:auto;
+  max-width:46%;
+  max-height:190px;
+  object-fit:contain;
+  margin:5px auto 0;
+}
+
+/* ---- El sobre ----
+   Una hoja crema con una capa gris por detrás, un poco más ancha y más
+   alta, recortada en V: eso es lo que deja asomando las dos aletas del
+   sobre en las esquinas de abajo.
+   OJO: es una aproximación en CSS de la forma del diseño. Si tiene que
+   quedar idéntica, lo más seguro es que diseño entregue el sobre como PNG
+   con transparencia y reemplazar esta capa por un <img>. */
+.academy-sobre{
+  position:relative;
+  flex-shrink:0;
+  width:100%;
+  max-width:330px;
+  margin:14px auto 0;
+}
+.academy-sobre-aletas{
+  position:absolute;
+  left:-16px;
+  right:-16px;
+  top:22px;
+  bottom:-34px;
+  background:#D6D6D6;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 50% 58%, 0 100%);
+}
+.academy-sobre-hoja{
+  position:relative;
+  z-index:1;
+  padding:22px 22px 26px;
+  /* Crema del diseño, no blanco puro. */
+  background:#FAF7F2;
+  box-shadow:0 14px 30px rgba(0,0,0,.20);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.academy-sobre-titulo{
+  margin:0 0 10px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:13px;
+  color:#2B2B2B;
+}
+.academy-sobre-texto{
+  margin:0;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:12px;
+  line-height:1.45;
+  color:#5A5A5A;
+}
+
+/* Botón oscuro. El texto trae \n desde los datos, de ahí el pre-line.
+   Se redeclara todo en los tres estados por las reglas genéricas de button
+   de base.css. */
+.academy-sobre-btn{
+  padding:12px 26px;
+  border-radius:999px;
+  border:none;
+  background:#1E1E1E;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:13px;
+  line-height:1.3;
+  text-align:center;
+  white-space:pre-line;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 10px 22px -10px rgba(0,0,0,.6);
+}
+.academy-sobre-btn:not(:disabled):hover,
+.academy-sobre-btn:not(:disabled):focus,
+.academy-sobre-btn:not(:disabled):active{
+  outline:none;
+  background:#1E1E1E;
+  color:#fff;
+}
+.academy-sobre-btn:not(:disabled):active{transform:scale(.98);}
+/* Sin opción elegida todavía. */
+.academy-sobre-btn:disabled{
+  cursor:not-allowed;
+  background:#BEBEBE;
+  color:#fff;
+  box-shadow:none;
+}
+
+/* ---- El caso y la pregunta ---- */
+.academy-sobre--caso{margin-top:26px;}
+
+.academy-caso-titulo{
+  margin:0 0 8px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:19px;
+  color:#2B2B2B;
+}
+.academy-caso-texto{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:10.5px;
+  line-height:1.5;
+  color:#5A5A5A;
+}
+.academy-caso-pregunta{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:15px;
+  color:#ED6F2D;
+}
+
+.academy-caso-opciones{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-bottom:22px;
+}
+
+/* Cada opción es un botón: el punto a la izquierda y el texto al lado. Se
+   redeclara todo en los tres estados por las reglas genéricas de button de
+   base.css. */
+.academy-caso-opcion{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  width:100%;
+  margin:0;
+  padding:0;
+  border:none;
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.academy-caso-opcion:hover,
+.academy-caso-opcion:focus,
+.academy-caso-opcion:active{
+  outline:none;
+  transform:none;
+  background:transparent;
+}
+.academy-caso-punto{
+  flex-shrink:0;
+  width:15px;
+  height:15px;
+  /* Baja un poco para alinearse con la primera línea del texto. */
+  margin-top:2px;
+  border-radius:50%;
+  background:#D3D3D3;
+  transition:background .15s ease;
+}
+.academy-caso-opcion--elegida .academy-caso-punto{
+  background:linear-gradient(160deg,#5FD36F 0%,#2FB84B 100%);
+}
+.academy-caso-opcion-texto{
+  min-width:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:600;
+  font-size:12px;
+  line-height:1.35;
+  color:#2B2B2B;
+}
+
+/* ---- Cierre de la experiencia ---- */
+.academy-final-titulo{
+  flex-shrink:0;
+  margin:34px 0 0;
+  max-width:290px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:800;
+  font-size:25px;
+  line-height:1.2;
+  color:#fff;
+}
+.academy-final-personaje{
+  flex-shrink:0;
+  display:block;
+  width:auto;
+  /*max-width:62%;*/
+  max-height:350px;
+  object-fit:contain;
+  margin:14px 0 -60px -20px;
+  /* Se monta sobre el borde de la hoja blanca, como en la referencia. */
+  position:relative;
+  z-index:2;
+}
+.academy-final-hoja{
+  flex:1 0 auto;
+  width:calc(100% + 36px);
+  margin:0 -18px calc(-1 * var(--academy-mision-abajo));
+  padding:52px 24px var(--academy-mision-abajo);
+  border-radius:26px 26px 0 0;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.academy-final-btn{
+  width:100%;
+  max-width:320px;
+  margin-top:22px;
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.academy-final-btn:hover,
+.academy-final-btn:focus,
+.academy-final-btn:active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+
+/* Sobre como imagen: el bloque se posiciona sobre la forma del PNG y pierde
+   el fondo y la sombra, que ya vienen dibujados en la imagen.
+   Los costados en % (y no en px) para que acompañen el ancho del recorte del
+   PNG, que también es porcentual. */
+.academy-sobre--imagen{
+  position:absolute;
+  left:12%;
+  right:12%;
+  top:var(--sobre-arriba, 46%);
+  width:auto;
+  max-width:none;
+  margin:0;
+}
+.academy-sobre--imagen .academy-sobre-hoja{
+  padding:0 20px;
+  background:transparent;
+  box-shadow:none;
+}
+
+@media (max-width:360px){
+  .academy-reto-titulo strong{font-size:23px;}
+  .academy-caso-titulo{font-size:17.5px;}
+  .academy-caso-opcion-texto{font-size:11.5px;}
+  .academy-final-titulo{font-size:22px;}
+}

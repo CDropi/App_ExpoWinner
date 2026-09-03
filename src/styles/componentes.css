@@ -1,0 +1,155 @@
+/* ============================================================
+   componentes.css — piezas reutilizadas por varias pantallas:
+   el menú inferior y el botón circular de regresar.
+   ============================================================ */
+
+/* ---- Menú inferior fijo, anclado a los bordes, sin texto ---- */
+.nav-wrapper{
+  position:relative;
+  z-index:20;
+  flex:0 0 auto;
+  background:#000;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@property --nav-hole-x{
+  syntax:'<percentage>';
+  inherits:false;
+  initial-value:0%;
+}
+.bottom-nav{
+  --nav-hole-x:0%;
+  position:relative;
+  height:64px;
+  margin:0;
+  background:#000;
+  border-radius:0;
+  overflow:visible;
+  /* Capa 1: la barra completa, siempre 100% visible.
+     Capa 2: la MISMA forma de hueco fija (no se recalcula nunca),
+     que solo se desliza de posición con mask-position — una
+     animación nativa y liviana, a diferencia de intentar "morfear"
+     un clip-path entre dos formas distintas (eso es lo que fallaba
+     en celulares). El modo "subtract" hace que la capa 2 recorte
+     un hueco real en la capa 1, sin ocultar el resto de la barra. */
+  -webkit-mask-image:
+    linear-gradient(#000,#000),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20130%2064'%3E%3Cpath%20d%3D'M%200.00%200.00%20L%2019.75%200.00%20L%2021.71%200.12%20L%2023.64%200.48%20L%2025.52%201.08%20L%2027.31%201.90%20L%2028.98%202.94%20L%2030.52%204.17%20L%2031.89%205.58%20L%2033.08%207.15%20L%2034.06%208.85%20L%2034.83%2010.67%20L%2038.34%2017.70%20L%2043.46%2023.66%20L%2049.87%2028.20%20L%2057.20%2031.04%20L%2065.00%2032.00%20L%2072.80%2031.04%20L%2080.13%2028.20%20L%2086.54%2023.66%20L%2091.66%2017.70%20L%2095.17%2010.67%20L%2095.94%208.85%20L%2096.92%207.15%20L%2098.11%205.58%20L%2099.48%204.17%20L%20101.02%202.94%20L%20102.69%201.90%20L%20104.48%201.08%20L%20106.36%200.48%20L%20108.29%200.12%20L%20110.25%200.00%20L%20130.00%200.00%20L%20130.00%2064.00%20L%200.00%2064.00%20Z'%20fill%3D'black'%2F%3E%3C%2Fsvg%3E");
+  mask-image:
+    linear-gradient(#000,#000),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20130%2064'%3E%3Cpath%20d%3D'M%200.00%200.00%20L%2019.75%200.00%20L%2021.71%200.12%20L%2023.64%200.48%20L%2025.52%201.08%20L%2027.31%201.90%20L%2028.98%202.94%20L%2030.52%204.17%20L%2031.89%205.58%20L%2033.08%207.15%20L%2034.06%208.85%20L%2034.83%2010.67%20L%2038.34%2017.70%20L%2043.46%2023.66%20L%2049.87%2028.20%20L%2057.20%2031.04%20L%2065.00%2032.00%20L%2072.80%2031.04%20L%2080.13%2028.20%20L%2086.54%2023.66%20L%2091.66%2017.70%20L%2095.17%2010.67%20L%2095.94%208.85%20L%2096.92%207.15%20L%2098.11%205.58%20L%2099.48%204.17%20L%20101.02%202.94%20L%20102.69%201.90%20L%20104.48%201.08%20L%20106.36%200.48%20L%20108.29%200.12%20L%20110.25%200.00%20L%20130.00%200.00%20L%20130.00%2064.00%20L%200.00%2064.00%20Z'%20fill%3D'black'%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-size:100% 100%, 33.3334% 100%;
+  mask-size:100% 100%, 33.3334% 100%;
+  -webkit-mask-repeat:no-repeat, no-repeat;
+  mask-repeat:no-repeat, no-repeat;
+  -webkit-mask-position:0 0, var(--nav-hole-x) 0;
+  mask-position:0 0, var(--nav-hole-x) 0;
+  -webkit-mask-composite:source-over, destination-out;
+  mask-composite:add, subtract;
+  transition:--nav-hole-x .48s cubic-bezier(.34,1.56,.64,1);
+}
+.nav-items-row{
+  display:flex;
+  width:100%;
+  height:100%;
+  position:relative;
+  z-index:1;
+}
+.nav-item{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:transparent;
+  border:none;
+  margin:0;
+  padding:18px 4px;
+  color:rgba(255,255,255,.55);
+  cursor:pointer;
+  transition:opacity .2s ease;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;
+  appearance:none;
+  outline:none !important;
+  box-shadow:none !important;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.nav-item:hover,
+.nav-item:focus,
+.nav-item:focus-visible,
+.nav-item:active{
+  outline:none !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  transform:none !important;
+}
+.nav-item img{width:20px;height:20px;}
+.nav-item.active{opacity:0;}
+
+/* El ícono activo se desliza en tiempo real con transform (nativo,
+   liviano, funciona en cualquier celular), sincronizado con el hueco
+   de arriba que se mueve con la misma duración/curva. */
+.nav-indicator{
+  position:absolute;
+  top:-22px;
+  left:0;
+  width:33.3333%;
+  height:60px;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .48s cubic-bezier(.34,1.56,.64,1);
+  z-index:2;
+  pointer-events:none;
+}
+.nav-indicator-circle{
+  flex-shrink:0;
+  width:60px;height:60px;
+  border-radius:50%;
+  background:var(--brand-orange);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 16px -6px rgba(0,0,0,.5);
+}
+.nav-indicator-circle img{width:25px;height:25px;}
+
+
+/* ---- Botón circular de regresar ----
+   Una sola receta para las cuatro pantallas que lo usan (política, premios,
+   Academy y la actividad de un stand). Antes estaba copiada cuatro veces. */
+.btn-regresar{
+  flex-shrink:0;
+  width:40px;height:40px;
+  margin:0;
+  padding:0;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  border:1px solid rgba(255,255,255,.25);
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build.
+     Escribirla a mano hace que el build borre la estándar. */
+  backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+.btn-regresar img{width:17px;height:17px;}
+/* Las reglas genéricas de base.css pintan el fondo dorado y aplican
+   scale(.98): hay que anular las dos en los tres estados. */
+.btn-regresar:hover,
+.btn-regresar:focus,
+.btn-regresar:active{
+  outline:none;
+  transform:none;
+  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+
+/* Variante para las pantallas que ocupan todo el alto: flota sobre el
+   contenido, respetando el notch. */
+.btn-regresar--flotante{
+  position:absolute;
+  top:calc(16px + env(safe-area-inset-top));
+  left:20px;
+  z-index:5;
+}

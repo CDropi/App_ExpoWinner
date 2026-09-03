@@ -1,0 +1,234 @@
+/* ============================================================
+   politica.css — pantalla de la política de tratamiento de datos.
+   ============================================================ */
+
+/* ---- Pantalla de la política de tratamiento de datos ---- */
+.politica-view{padding:8px 4px 32px;}
+
+/* Fila superior de la pantalla: regresar a la izquierda, logo a la derecha.
+   space-between los separa a los extremos y center los deja a la misma
+   altura aunque tengan alturas distintas. */
+.politica-barra-superior{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+}
+.politica-logo{
+  height:34px;
+  width:auto;
+  object-fit:contain;
+  flex-shrink:0;
+}
+
+/* El vidrio de esta pantalla es gris oscuro en vez de blanco translúcido:
+   son bloques largos de texto y el vidrio claro dejaba pasar demasiado el
+   fondo naranja, restándole legibilidad. */
+.politica-encabezado{
+  padding:16px 18px 18px;
+  margin:14px 0 14px;
+  border-radius:20px;
+  background:linear-gradient(160deg,
+    rgba(30,28,27,.50) 0%,
+    rgba(18,17,17,.56) 55%,
+    rgba(24,22,21,.52) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(120%);
+}
+
+
+.politica-titulo{
+  margin:0;
+  font-family:'Tusker';
+  font-size:20px;
+  line-height:1.15;
+  color:var(--paper);
+  text-align: center;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.politica-actualizacion{
+  margin:8px 0 0;
+  font-size:11px;
+  color:rgba(255,255,255,.55);
+}
+
+/* Todas las secciones viven dentro de un mismo recuadro, como en la
+   referencia de diseño. */
+.politica-acordeon{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:12px;
+  border-radius:20px;
+  background:linear-gradient(160deg,
+    rgba(30,28,27,.48) 0%,
+    rgba(17,16,16,.55) 55%,
+    rgba(23,21,20,.50) 100%);
+  /* Solo la propiedad estándar: Lightning CSS agrega el -webkit- en el build. */
+  backdrop-filter:blur(9px) saturate(120%);
+}
+
+/* Los ítems van MÁS oscuros que el recuadro que los contiene, para que se
+   lean como pastillas hundidas y no como tarjetas encima. */
+.politica-item{
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(10,10,11,.55);
+  overflow:hidden;
+}
+.politica-item--abierta{
+  border-color:rgba(255,255,255,.11);
+  background:rgba(10,10,11,.72);
+}
+
+.politica-item-cabecera{
+  display:flex;
+  /* center alinea insignia, título y chevron al medio vertical del cajón,
+     también cuando el título ocupa dos líneas. */
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:14px;
+  border-radius:0;
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+/* La regla genérica de base.css pinta el fondo dorado y aplica scale(.98):
+   hay que anular las dos en los tres estados. */
+.politica-item-cabecera:hover,
+.politica-item-cabecera:focus,
+.politica-item-cabecera:active{
+  outline:none;
+  transform:none;
+  background:transparent;
+}
+
+.politica-item button{
+  margin-top: 0;
+}
+
+.politica-item-insignia{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  width:20px;
+  height:20px;
+  border-radius:999px;
+  border:1px solid rgba(237,111,45,.50);
+  /* Círculo oscuro con aro naranja, no relleno naranja. */
+  background:rgba(0,0,0,.45);
+  color:var(--brand-orange);
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;
+  line-height:1;
+}
+/* Preámbulo: punto dibujado con CSS, así queda perfectamente centrado. */
+.politica-item-insignia--punto::before{
+  content:'';
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--brand-orange);
+}
+
+.politica-item-titulo{
+  font-family: 'Montserrat';
+  flex:1;
+  min-width:0;
+  font-size:12px;
+  font-weight:700;
+  color:var(--paper);
+}
+
+/* Chevron desplegable. Arrow.svg apunta a la derecha en el archivo, así que
+   se rota: 90deg para abajo (cerrado) y -90deg para arriba (abierto). */
+.politica-item-chevron{
+  flex-shrink:0;
+  width:7px;
+  height:auto;
+  opacity:.5;
+  transform:rotate(90deg);
+  transition:transform .25s ease, opacity .25s ease;
+}
+.politica-item--abierta .politica-item-chevron{
+  opacity:.8;
+  transform:rotate(-90deg);
+}
+
+.politica-item-cuerpo{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:2px 14px 14px;
+}
+
+/* Texto legal: se lee seguido y largo, así que va con más interlineado que
+   el resto de la app. */
+.politica-parrafo{
+  margin:0;
+  font-size:11.5px;
+  line-height:1.65;
+  color:rgba(255,255,255,.80);
+  text-align:justify;
+}
+
+.politica-subtitulo{
+  margin:4px 0 0;
+  font-size:12px;
+  font-weight:700;
+  color:var(--brand-orange);
+}
+
+.politica-lista{
+  margin:0;
+  padding-left:16px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  font-size:11.5px;
+  line-height:1.6;
+  color:rgba(255,255,255,.80);
+}
+.politica-lista li::marker{color:var(--brand-orange);}
+.politica-lista-termino{
+  font-weight:700;
+  color:var(--paper);
+}
+
+.politica-volver-arriba{
+  align-self:flex-start;
+  margin-top:4px;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.72);
+  font-family:'Montserrat',sans-serif;
+  font-size:10.5px;
+  font-weight:400;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.politica-volver-arriba:hover,
+.politica-volver-arriba:focus,
+.politica-volver-arriba:active{
+  outline:none;
+  transform:none;
+  background:rgba(255,255,255,.11);
+  color:var(--paper);
+}
+
+.politica-enlace-oficial{
+  display:block;
+  margin-top:18px;
+  text-align:center;
+  font-size:11.5px;
+  color:var(--brand-orange);
+  text-decoration:underline;
+}
+

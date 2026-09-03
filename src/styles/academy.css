@@ -1,0 +1,588 @@
+/* ============================================================
+   academy.css — mini experiencia de Academy.
+   ============================================================ */
+
+
+/* Ocupa toda la pantalla (va dentro de .app-scroll--full, sin nav abajo) y
+   reparte el contenido en columna: badge arriba, texto, Codi y botón. */
+.academy-view{
+  position:relative;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:40px 24px;
+  overflow:hidden;
+}
+
+/* Fondo propio de la pantalla. Tres capas en un solo background:
+   1) el damero tenue (conic-gradient repetido en cuadros de 104px),
+   2) la forma redondeada clara de abajo (radial recortado),
+   3) el naranja plano de base.
+   Va en su propia capa (no en el body) para que salir de la pantalla no
+   tenga que restaurar nada. */
+.academy-fondo{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background-color:#F44F0D;
+  /* El damero es a propósito casi imperceptible: en el diseño apenas se
+     insinúa. Con más opacidad o cuadros más grandes competía con el Codi.
+     Versión anterior (demasiado marcada): rgba(255,255,255,.045) y 104px. */
+  background-image:
+    conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,.022) 0 25%,
+      transparent 0 50%,
+      rgba(255,255,255,.022) 0 75%,
+      transparent 0);
+  background-size:68px 68px;
+  background-position:center bottom;
+}
+.academy-badge{
+  position:relative;
+  z-index:1;
+  margin-top:40px;
+}
+.academy-badge img{
+  display:block;
+  width:76px;
+  height:auto;
+}
+.academy-badge-texto{
+  display:block;
+  padding:14px 20px 16px;
+  border-radius:0 0 18px 18px;
+  background:#fff;
+  color:#F44F0D;
+  font-family:'Tusker',sans-serif;
+  font-size:16px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.academy-texto{
+  position:relative;
+  z-index:1;
+  margin:34px 0 0;
+  max-width:280px;
+  text-align:center;
+  font-family:'Montserrat';
+  font-weight:100;
+  font-size:13.5px;
+  color:#fff;
+}
+.academy-texto strong{font-weight:700;}
+
+/* El Codi se queda en el centro del espacio libre: margin auto arriba y
+   abajo lo empuja al medio, y el botón queda abajo. */
+.academy-codi{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:auto;
+  max-width:100%;
+  max-height:46vh;
+  object-fit:contain;
+  margin:auto 0;
+}
+
+/* Píldora oscura del diseño. Se redeclara todo en los tres estados por las
+   reglas genéricas de button de base.css (fondo dorado y scale). */
+.academy-btn{
+  position:relative;
+  z-index:1;
+  flex-shrink:0;
+  padding:13px 34px;
+  border-radius:999px;
+  border:none;
+  background:#242424;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13.5px;
+  letter-spacing:.02em;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 22px rgba(0,0,0,.28);
+}
+.academy-btn:hover,
+.academy-btn:focus,
+.academy-btn:active{
+  outline:none;
+  transform:none;
+  background:#2f2f2f;
+  color:#fff;
+}
+
+
+/* ============================================================
+   Pantalla 2: el camino de estaciones.
+   Estructura: .academy-view--camino ocupa todo el alto y se parte en dos
+   bloques -> el hero naranja (logo, título, barra, Codi) y la hoja blanca
+   de abajo con la lista de estaciones. Ninguno de los dos hace scroll de
+   página: la que scrollea es la lista, adentro de la hoja.
+   ============================================================ */
+
+.academy-view--camino{
+  /* El padding y el centrado de .academy-view son para la bienvenida; aquí
+     la hoja blanca tiene que llegar a los bordes de la pantalla. */
+  padding:0;
+  align-items:stretch;
+  /* Alto exacto del contenedor (es un flex item de .app-scroll) en vez de
+     min-height:100%, para que la hoja no empuje la pantalla hacia abajo. */
+  flex:1;
+  min-height:0;
+  justify-content:flex-start;
+}
+
+/* ---- Hero naranja ---- */
+.academy-camino-hero{
+  position:relative;
+  z-index:1;
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:calc(14px + env(safe-area-inset-top)) 22px 0;
+  overflow:hidden;
+}
+
+.academy-camino-barra{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  flex-shrink:0;
+}
+.academy-camino-logo{
+  display:block;
+  width:52px;
+  height:auto;
+}
+
+.academy-camino-titulo{
+  margin:30px 0 0;
+  max-width:290px;
+  text-align:center;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:18px;
+  line-height:1.3;
+  color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.18);
+}
+.academy-camino-titulo strong{font-weight:800;}
+
+/* Carril blanco con el relleno de avance. El relleno va en verde como en la
+   referencia de diseño; si se quiere alinear con el naranja de marca, basta
+   cambiar el degradado de .academy-camino-progreso-barra. */
+.academy-camino-progreso{
+  position:relative;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  width:80%;
+  max-width:320px;
+  margin-top:16px;
+}
+/* El carril blanco. Antes esta clase (.academy-camino-progreso) era el carril
+   mismo; ahora es el contenedor, porque la medalla va montada encima. */
+.academy-camino-progreso-carril{
+  width:100%;
+  height:22px;
+  padding:4px;
+  border-radius:999px;
+  background:#fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.18);
+}
+.academy-camino-progreso-barra{
+  height:100%;
+  /* Con 0 estaciones completadas igual se ve el punto de arranque. */
+  min-width:16px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#4FCC66 0%,#23913C 100%);
+  transition:width .35s ease;
+}
+/* Insignia del premio, sobre el extremo derecho del carril. */
+.academy-camino-progreso-medalla{
+  position:absolute;
+  right:0;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:linear-gradient(160deg,#FF8A3D 0%,#ED6F2D 100%);
+  border:3px solid #fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.2);
+}
+.academy-camino-progreso-medalla-icono{
+  width:22px;
+  height:22px;
+  background:#fff;
+  -webkit-mask:url('/media/Medalla.svg') no-repeat center / contain;
+  mask:url('/media/Medalla.svg') no-repeat center / contain;
+}
+
+/* Codi ocupa lo que sobre entre la barra y la hoja, y se apoya en el borde
+   de abajo del hero (la hoja lo tapa parcialmente, como en el diseño). */
+.academy-camino-codi{
+  /* No crece (con object-fit el espacio extra quedaría vacío) pero sí se
+     encoge: margin-top:auto lo empuja contra el borde de abajo del hero. */
+  flex:0 1 auto;
+  min-height:0;
+  display:block;
+  width:auto;
+  max-width:80%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:bottom center;
+  /* margin-top:auto lo empuja contra el borde de abajo del hero, para que se
+     apoye en la hoja como en el diseño.
+     Versión anterior (quedaba pegado a la barra de avance): margin:8px auto 0; */
+  margin:10px auto 0;
+}
+
+/* ---- Hoja blanca con el camino ---- */
+.academy-hoja{
+  position:relative;
+  z-index:2;
+  /* El alto se da como flex-basis (no como height:%) porque el porcentaje de
+     flex-basis se resuelve contra el alto del contenedor de forma confiable
+     aunque ese alto venga de otro flex. */
+  flex:0 0 46%;
+  display:flex;
+  flex-direction:column;
+  padding:0 18px;
+  /* La hoja es solo el contenedor: el blanco, las esquinas redondeadas y la
+     sombra los pone el PRIMER PANEL, no ella. Así el borde superior de la
+     zona blanca coincide con la etiqueta del primer panel y esa etiqueta
+     queda montada sobre el borde, igual que las otras dos.
+     Versión anterior (el blanco lo ponía la hoja, y la etiqueta del primer
+     panel quedaba por dentro):
+  border-radius:26px 26px 0 0;
+  background:#fff;
+  box-shadow:0 -12px 30px rgba(0,0,0,.22);
+  */
+  background:transparent;
+}
+
+/* La hoja ya no se expande como un todo: el alto es fijo y lo que se abre y
+   se cierra son los paneles, cada uno por su cuenta. Por eso se quitaron el
+   chevrón del centro (.academy-hoja-tirador y su flecha) y la variante
+   .academy-hoja--expandida{flex-basis:82%}, junto con la transición de
+   flex-basis. Si algún día se quiere volver a la hoja expandible, hay que
+   reponer esas tres cosas más el estado hojaExpandida en AcademyCamino.jsx. */
+
+/* ---- Las estaciones: tres paneles apilados ----
+   NOTA: la primera versión de esta lista (de esta misma sesión, nunca
+   publicada) dibujaba las estaciones como filas en zigzag con el círculo y
+   la etiqueta a los costados. Se reemplazó por los paneles apilados de la
+   referencia de diseño, así que esas reglas (.academy-estacion*) se
+   quitaron para no dejar CSS muerto.
+
+   Cada panel es una tarjeta con las esquinas de arriba redondeadas. La
+   etiqueta y el círculo del icono van montados SOBRE el borde superior del
+   panel (con un margen negativo en la cabecera), y como cada panel se dibuja
+   después del anterior, quedan encima de la tarjeta de arriba: eso da el
+   efecto de tarjetas apiladas del diseño. Los tres se abren y se cierran de
+   forma independiente. */
+.academy-camino-paneles{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  display:flex;
+  flex-direction:column;
+  /* La hoja tiene padding lateral; los paneles lo anulan para llegar a los
+     dos bordes de la pantalla, como en la referencia. */
+  margin:0 -18px;
+  /* El padding de arriba es el espacio que necesita la etiqueta del primer
+     panel, que sobresale por encima de su borde.
+     En la referencia esa primera etiqueta se sale de la hoja y queda sobre
+     el naranja; aquí queda adentro, porque la lista tiene que poder hacer
+     scroll y un overflow visible lo impediría. */
+  padding:40px 0 0;
+}
+
+.academy-panel{
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 1px -5px 10px rgba(0, 0, 0, .20);
+}
+
+/* Los paneles van uno pegado al siguiente, pero como el de abajo tiene las
+   esquinas de arriba redondeadas, en esas dos curvas se veía el naranja del
+   fondo: parecía un recorte entre nivel y nivel.
+   Esto extiende el color de cada panel 26px por debajo de su borde (los
+   mismos 26px del radio), justo detrás del panel siguiente. Como el panel
+   siguiente va con z-index mayor, lo tapa todo menos las dos curvas, y ahí
+   asoma el gris del panel de arriba en vez del naranja.
+   Va en un ::before y no con margen negativo para no alterar el alto ni el
+   espaciado de los paneles. */
+.academy-panel::before{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-26px;
+  height:26px;
+  z-index:-1;
+  /* Toma el color de fondo del propio panel. */
+  background:inherit;
+}
+/* El último no tiene nada debajo que tapar. */
+.academy-panel:last-child::before{display:none;}
+/* Los grises van aumentando hacia abajo para que se lea la pila. */
+.academy-panel:nth-child(1){
+  z-index:1;
+  background:#fff;
+  box-shadow:0 -12px 30px rgba(0,0,0,.22);
+}
+.academy-panel:nth-child(2){z-index:2;background:#F1F1F1;}
+.academy-panel:nth-child(3){z-index:3;background:#E6E6E6;}
+/* El último se estira para que su color llegue hasta el final de la hoja y
+   no quede una franja blanca por debajo. */
+.academy-panel:last-child{flex:1 0 auto;}
+
+/* Cabecera: etiqueta + círculo, montados sobre el borde del panel. El margen
+   negativo es la mitad del círculo, así los dos quedan centrados justo en el
+   borde. Se alternan los costados para que el recorrido zigzaguee. */
+.academy-panel-cabecera{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  margin:-31px 0 0;
+  padding:0;
+  border:none;
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.academy-panel--der .academy-panel-cabecera{flex-direction:row-reverse;}
+/* base.css pinta el fondo dorado y aplica scale(.98) en hover/focus/active:
+   hay que anular las dos. */
+.academy-panel-cabecera:hover,
+.academy-panel-cabecera:focus,
+.academy-panel-cabecera:active{
+  outline:none;
+  transform:none;
+  background:transparent;
+}
+
+.academy-panel-chip{
+  flex:0 1 auto;
+  max-width:58%;
+  padding:10px 16px;
+  border-radius:9px;
+  font-family:'Montserrat';
+  font-weight:100;
+  font-size:12.5px;
+  line-height:1.25;
+}
+
+.academy-panel-circulo{
+  flex-shrink:0;
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  /* Un aro del color del panel para que se despegue de la tarjeta de arriba,
+     igual que en el diseño. */
+  border:4px solid transparent;
+  transition:background .2s ease, box-shadow .2s ease;
+}
+/* El icono llega como variable --icono desde el JSX y se pinta con máscara,
+   así el mismo SVG blanco sirve en gris o en blanco. */
+.academy-panel-icono{
+  width:27px;
+  height:27px;
+  -webkit-mask:var(--icono) no-repeat center / contain;
+  mask:var(--icono) no-repeat center / contain;
+}
+
+/* ---- Cuerpo abierto ---- */
+.academy-panel-cuerpo{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:14px 32px 32px;
+}
+.academy-panel-cuerpo-texto{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+}
+.academy-panel-texto{
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  font-size:12.5px;
+  line-height:1.45;
+  color:#5A5A5A;
+  text-align: center;
+}
+/* El `**texto**` de academyDatos.js llega como <strong>. */
+.academy-panel-texto strong{
+  font-weight:800;
+  color:#ED6F2D;
+}
+.academy-panel-imagen{
+  flex-shrink:0;
+  width:96px;
+  height:auto;
+  align-self:center;
+}
+
+/* Botón de arrancar la estación. Se redeclara todo en los tres estados por
+   las reglas genéricas de button de base.css. */
+.academy-panel-btn{
+  padding:9px 18px;
+  border-radius:999px;
+  border:none;
+  background:#ED6F2D;
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 8px 18px -8px rgba(169,69,15,.9);
+  margin-top: 0;
+}
+.academy-panel-btn:not(:disabled):hover,
+.academy-panel-btn:not(:disabled):focus,
+.academy-panel-btn:not(:disabled):active{
+  outline:none;
+  background:#ED6F2D;
+  color:#fff;
+}
+.academy-panel-btn:not(:disabled):active{transform:scale(.98);}
+/* El camino es lineal: en las estaciones bloqueadas el panel se puede abrir y
+   leer, pero el botón de empezar queda apagado. */
+.academy-panel-btn:disabled{
+  cursor:not-allowed;
+  background:#DCDCDC;
+  color:#fff;
+  box-shadow:none;
+}
+
+/* ---- Los tres estados de una estación ----
+   bloqueada    : todavía no se puede empezar (falta completar la anterior).
+   desbloqueada : la que toca hacer.
+   completada   : ya se hizo.
+   Bloqueada y desbloqueada se ven igual en gris/salmón; lo que las
+   diferencia es el icono (candado vs. el de la estación) y que la
+   bloqueada tiene el botón de empezar apagado. La señal fuerte de "estás
+   acá" la da el panel abierto, más abajo. */
+/* ---- Panel abierto = la sección seleccionada ----
+   El panel abierto es el que la persona está mirando, así que su círculo se
+   pinta del naranja de marca, con el icono en blanco, un poco más grande y
+   con resplandor. Es la única señal fuerte de "estás aquí" en el camino.
+   El margen de la cabecera se ajusta a la par del tamaño del círculo: es la
+   mitad de su alto total (círculo + aro), y si no se mueven juntos la
+   etiqueta y el círculo se dejan de ver montados sobre el borde del panel. */
+/* OJO con la especificidad: las reglas de estado (--bloqueada/--desbloqueada) están más
+   abajo en este mismo archivo y tienen las mismas dos clases, así que le
+   ganaban a estas y el círculo seguía saliendo gris. Por eso van con
+   .academy-panel repetido: tres clases le ganan a dos sin importar el orden. */
+.academy-panel.academy-panel--abierta .academy-panel-cabecera{margin-top:-40px;}
+.academy-panel.academy-panel--abierta .academy-panel-circulo{
+  width:72px;
+  height:72px;
+  box-shadow:none;
+}
+.academy-panel.academy-panel--abierta .academy-panel-icono{
+  width:32px;
+  height:32px;
+}
+/* La etiqueta mantiene el mismo peso de letra que las otras dos; lo que
+   cambia es el fondo, más fuerte, para marcar cuál está seleccionada. */
+.academy-panel.academy-panel--abierta .academy-panel-chip{
+  background:#E8895F;
+  color:#fff;
+}
+
+/* Bloqueada: todo en gris, con candado. Aunque el panel esté abierto (y por
+   eso el círculo crezca), el gris se queda: es lo que diferencia una estación
+   bloqueada de una desbloqueada. */
+.academy-panel--bloqueada .academy-panel-circulo{background:#D6D6D6;}
+.academy-panel--bloqueada .academy-panel-icono{background:#9E9E9E;}
+
+/* Desbloqueada: círculo naranja de marca con el icono en blanco. Es la que se
+   puede empezar. */
+.academy-panel--desbloqueada .academy-panel-circulo{
+  background:linear-gradient(160deg,#FF8A3D 0%,#ED6F2D 100%);
+}
+.academy-panel--desbloqueada .academy-panel-icono{background:#fff;}
+
+/* La etiqueta es igual en los dos estados; la del panel abierto se pinta más
+   fuerte más abajo. */
+.academy-panel--bloqueada .academy-panel-chip,
+.academy-panel--desbloqueada .academy-panel-chip{
+  background:#F0C4AF;
+  color:#fff;
+}
+
+/* Completada: verde, igual que el relleno de la barra de avance, con chulo.
+   Si se prefiere todo en naranja de marca, basta cambiar estos tres colores. */
+.academy-panel--completada .academy-panel-circulo{
+  background:linear-gradient(160deg,#4FCC66 0%,#23913C 100%);
+  box-shadow:0 8px 18px rgba(35,145,60,.32);
+}
+.academy-panel--completada .academy-panel-icono{background:#fff;}
+.academy-panel--completada .academy-panel-chip{
+  background:#DDF1E1;
+  color:#23913C;
+}
+
+/* Si la estación ya está completada, manda el verde aunque el panel esté
+   abierto: es información más importante que "la estoy mirando". */
+.academy-panel.academy-panel--completada.academy-panel--abierta .academy-panel-circulo{
+  background:linear-gradient(160deg,#4FCC66 0%,#23913C 100%);
+  box-shadow:none;
+}
+.academy-panel.academy-panel--completada.academy-panel--abierta .academy-panel-chip{
+  background:#DDF1E1;
+  color:#23913C;
+}
+
+/* El aro alrededor del círculo toma el color del panel donde está montado,
+   para que se vea recortado sobre la tarjeta de arriba. */
+.academy-panel:nth-child(1) .academy-panel-circulo{border-color:#fff;}
+.academy-panel:nth-child(2) .academy-panel-circulo{border-color:#F1F1F1;}
+.academy-panel:nth-child(3) .academy-panel-circulo{border-color:#E6E6E6;}
+
+/* Celulares angostos: todo un poco más compacto para que la etiqueta no
+   quede en cuatro líneas. */
+@media (max-width:360px){
+  .academy-camino-titulo{font-size:16.5px;}
+  .academy-panel-circulo{width:56px;height:56px;}
+  .academy-panel-cabecera{margin-top:-28px;}
+  .academy-panel-icono{width:24px;height:24px;}
+  .academy-panel.academy-panel--abierta .academy-panel-circulo{width:66px;height:66px;}
+  .academy-panel.academy-panel--abierta .academy-panel-cabecera{margin-top:-37px;}
+  .academy-panel.academy-panel--abierta .academy-panel-icono{width:29px;height:29px;}
+  .academy-panel-chip{font-size:11.5px;padding:9px 13px;}
+  .academy-panel-imagen{width:80px;}
+}

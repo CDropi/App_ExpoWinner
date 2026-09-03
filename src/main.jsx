@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles/base.css';
 import Ingreso from './pages/Ingreso.jsx';
 import Staff from './pages/Staff.jsx';
-import RestablecerContrasena from './pages/RestablecerContrasena.jsx';
+import Admin from './pages/Admin.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -12,7 +12,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<Ingreso />} />
         <Route path="/staff" element={<Staff />} />
-        <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

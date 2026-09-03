@@ -1,21 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import {
-  EVENTO, VIDEO_INTRO, IMAGEN_INTRO,
-  IMAGEN_POPUP_PROMO, IMAGEN_FONDO_LOGIN, LOGO_LOGIN, LOGO_APP, URL_REGISTRO_LANDING
+  EVENTO, MODO_PRUEBA, VIDEO_INTRO, IMAGEN_INTRO, IMAGEN_POPUP_PROMO,
+  IMAGEN_FONDO_LOGIN, IMAGEN_FONDO_PERFIL, LOGO_LOGIN, LOGO_APP,
+  URL_REGISTRO_LANDING, STANDS,
 } from '../config.js';
-import { buscarPersonaPorId, obtenerTicketsDePersona, elegirDia, marcarCuentaCreada } from '../lib/dataLayer.js';
-import { crearContrasenaParaTelefono, iniciarSesionConTelefono, solicitarResetContrasena, logoutStaff } from '../lib/auth.js';
+import {
+  buscarPersonaPorId, obtenerTicketsDePersona, elegirDia,
+  obtenerStandsCompletados, marcarStandCompletado,
+  obtenerPremiosPersona, confirmarPremios, reiniciarDatosDePrueba,
+} from '../lib/dataLayer.js';
 import { useEsMobil } from '../hooks/useEsMobil.js';
 import SoloMobil from '../components/SoloMobil.jsx';
+import BottomNav from '../components/BottomNav.jsx';
+import EventCard from '../views/tickets/EventCard.jsx';
+import TicketCompleto from '../views/tickets/TicketCompleto.jsx';
+import MapaView from '../views/ruta/MapaView.jsx';
+import ActividadStand from '../views/ruta/ActividadStand.jsx';
+import PremiosView from '../views/ruta/PremiosView.jsx';
+import PerfilView from '../views/perfil/PerfilView.jsx';
+import PoliticaView from '../views/perfil/PoliticaView.jsx';
+import AcademyView from '../views/academy/AcademyView.jsx';
 import '../styles/ingreso.css';
-import '../styles/staff.css'; // reusa .staff-logout para el botón de cerrar sesión del asistente
 
-const NAV_ITEMS = [
-  { key: 'tickets', label: 'Tickets', icon: '/media/Tickets.svg', iconActivo: '/media/Tickets_2.svg' },
-  { key: 'perfil', label: 'Perfil', icon: '/media/Perfil.svg', iconActivo: '/media/Perfil_2.svg' },
-  { key: 'mapa', label: 'Mapa', icon: '/media/Mapa.svg', iconActivo: '/media/Mapa_2.svg' },
-];
+// Números de prueba que aparecen como atajo en el login cuando
+// MODO_PRUEBA está activo en config.js.
+const TEST_IDS = ["3001234567", "3007654321", "3012223344", "3019998877", "3005556677"];
 
 export default function Ingreso() {
   const esMobil = useEsMobil();
@@ -29,26 +38,33 @@ export default function Ingreso() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [ticketModal, setTicketModal] = useState(null); // { dia, ticket } | null
   const [navActive, setNavActive] = useState(0);
-  const navHoleX = `${navActive * 50}%`;
-
-  // ---- Paso de contraseña (teléfono ya encontrado, falta autenticar) ----
-  // 'celular' | 'crearPassword' | 'ingresarPassword'
-  const [pasoLogin, setPasoLogin] = useState('celular');
-  const [telefonoPendiente, setTelefonoPendiente] = useState('');
-  const [personaPendiente, setPersonaPendiente] = useState(null);
-  const [passwordValue, setPasswordValue] = useState('');
-  const [passwordConfirmValue, setPasswordConfirmValue] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [resetMensaje, setResetMensaje] = useState('');
-  const [resetEnviando, setResetEnviando] = useState(false);
+  const [standActivo, setStandActivo] = useState(null); // stand elegido en el mapa (o null si estamos en el mapa)
+  const [standsCompletados, setStandsCompletados] = useState([]); // ids de stands ya "pre-desbloqueados"
+  const [premios, setPremios] = useState({ seleccionados: [], confirmado: false, entregados: [] });
+  const [premiosAbierto, setPremiosAbierto] = useState(false); // pantalla de elegir/ver premios
+  const [politicaAbierta, setPoliticaAbierta] = useState(false); // pantalla de política de datos
+  const [academyAbierto, setAcademyAbierto] = useState(false); // mini experiencia de Academy
 
   const videoRef = useRef(null);
 
   // ---- Fondo de la pantalla (solo la imagen) ----
+  // La pantalla de Perfil (tab 1) usa su propia imagen de fondo; todas las
+  // demás vistas (login, tickets, mapa, actividad de stand, premios) siguen
+  // usando el fondo general de la app.
+  const enPerfil = !!persona && !standActivo && !premiosAbierto && !politicaAbierta && !academyAbierto && navActive === 1;
   useEffect(() => {
-    document.body.style.backgroundImage = `url("${IMAGEN_FONDO_LOGIN}")`;
+    // Versión anterior (un solo fondo para toda la pantalla de ingreso):
+    // document.body.style.backgroundImage = `url("${IMAGEN_FONDO_LOGIN}")`;
+    const imagenFondo = enPerfil ? IMAGEN_FONDO_PERFIL : IMAGEN_FONDO_LOGIN;
+    document.body.style.backgroundImage = `url("${imagenFondo}")`;
     return () => { document.body.style.backgroundImage = ''; };
+  }, [enPerfil]);
+
+  // Precarga del fondo de Perfil para que al entrar al tab el cambio sea
+  // inmediato y no se vea el body sin imagen mientras descarga.
+  useEffect(() => {
+    const img = new Image();
+    img.src = IMAGEN_FONDO_PERFIL;
   }, []);
 
   // ---- Cortinilla de video ----
@@ -93,16 +109,14 @@ export default function Ingreso() {
         setErrorHtml('Este número no se encuentra <strong>registrado</strong>.<br>Verifica el número o contacta a soporte.');
         return;
       }
-
-      // Hay que autenticar con teléfono + contraseña antes de poder
-      // leer/escribir en Firestore (regla `request.auth != null`).
-      // Se decide "crear" vs "ingresar" contraseña con el flag `tieneCuenta`
-      // que guardamos nosotros mismos en el preregistro — no le preguntamos
-      // a Firebase Authentication porque esa consulta queda inutilizada si
-      // el proyecto tiene activada la protección de enumeración de correos.
-      setTelefonoPendiente(idValue);
-      setPersonaPendiente(personaEncontrada);
-      setPasoLogin(personaEncontrada.tieneCuenta ? 'ingresarPassword' : 'crearPassword');
+      const misTickets = await obtenerTicketsDePersona(idValue);
+      setPersona(personaEncontrada);
+      setTickets(misTickets);
+      setTab('proximos');
+      obtenerStandsCompletados(idValue).then(setStandsCompletados).catch(() => {});
+      obtenerPremiosPersona(idValue).then(setPremios).catch(() => {});
+      // [TEMPORAL - oculto para la primera versión de prueba, no borrar]
+      setPromoOpen(true);
     } catch (err) {
       console.error(err);
       setErrorHtml('Ocurrió un error al buscar tu registro. Intenta de nuevo.');
@@ -111,128 +125,54 @@ export default function Ingreso() {
     }
   }
 
-  // Carga los tickets y entra a la app, justo después de que la
-  // contraseña quedó validada o creada.
-  async function completarIngreso(idValue, personaEncontrada) {
-    const misTickets = await obtenerTicketsDePersona(idValue);
-    setPersona(personaEncontrada);
-    setTickets(misTickets);
-    setTab('proximos');
-    setPromoOpen(true); // muestra el popup promocional (IMAGEN_POPUP_PROMO) al entrar
-  }
-
-  function volverAlCelular() {
-    setPasoLogin('celular');
-    setTelefonoPendiente('');
-    setPersonaPendiente(null);
-    setPasswordValue('');
-    setPasswordConfirmValue('');
-    setPasswordError('');
-    setMostrarPassword(false);
-    setResetMensaje('');
-  }
-
-  // Cierra la sesión de Firebase (misma función que usa Staff, es genérica)
-  // y resetea todo el estado local para volver a la pantalla de celular,
-  // como si el asistente nunca hubiera entrado.
-  async function handleCerrarSesion() {
-    try {
-      await logoutStaff();
-    } catch (err) {
-      console.error('Error cerrando sesión:', err);
-    }
-    setPersona(null);
-    setTickets([]);
-    setDocValue('');
-    setTab('proximos');
-    setNavActive(0);
-    setPromoOpen(false);
-    setTicketModal(null);
-    volverAlCelular();
-  }
-
-  // Primera vez que este teléfono entra: crea su contraseña.
-  async function handleCrearPassword() {
-    setPasswordError('');
-    if (passwordValue.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-    if (passwordValue !== passwordConfirmValue) {
-      setPasswordError('Las contraseñas no coinciden.');
-      return;
-    }
-    setBuscando(true);
-    try {
-      await crearContrasenaParaTelefono(telefonoPendiente, passwordValue);
-      await marcarCuentaCreada(telefonoPendiente);
-      await completarIngreso(telefonoPendiente, personaPendiente);
-      volverAlCelular();
-    } catch (err) {
-      // Cuentas creadas ANTES de este cambio (como cuentas de prueba) no
-      // tienen el flag `tieneCuenta` en su preregistro todavía, así que
-      // caen aquí una sola vez. Marcamos el flag para que la próxima vez
-      // ya le salga "Ingresa tu contraseña" directamente, sin pasar por
-      // este respaldo.
-      if (err?.code === 'auth/email-already-in-use') {
-        marcarCuentaCreada(telefonoPendiente);
-        setPasswordValue('');
-        setPasswordConfirmValue('');
-        setPasoLogin('ingresarPassword');
-        return;
-      }
-      console.error(err);
-      setPasswordError('No se pudo crear tu contraseña. Intenta de nuevo.');
-    } finally {
-      setBuscando(false);
-    }
-  }
-
-  // Ya tenía contraseña creada: valida e ingresa.
-  async function handleIngresarPassword() {
-    setPasswordError('');
-    if (!passwordValue) {
-      setPasswordError('Ingresa tu contraseña.');
-      return;
-    }
-    setBuscando(true);
-    try {
-      await iniciarSesionConTelefono(telefonoPendiente, passwordValue);
-      if (!personaPendiente?.tieneCuenta) marcarCuentaCreada(telefonoPendiente);
-      await completarIngreso(telefonoPendiente, personaPendiente);
-      volverAlCelular();
-    } catch (err) {
-      console.error(err);
-      setPasswordError('Contraseña incorrecta. Intenta de nuevo.');
-    } finally {
-      setBuscando(false);
-    }
-  }
-
-  // "¿Olvidaste tu contraseña?" — solo pide confirmar, nunca vuelve a pedir
-  // el correo (ya lo tenemos en preregistros). La Cloud Function siempre
-  // responde el mismo mensaje genérico, exista o no la cuenta, para no
-  // revelar qué números están registrados.
-  async function handleOlvidoPassword() {
-    setPasswordError('');
-    setResetMensaje('');
-    setResetEnviando(true);
-    try {
-      const res = await solicitarResetContrasena(telefonoPendiente);
-      setResetMensaje(res?.mensaje || 'Si tu número está registrado, te enviamos instrucciones a tu correo.');
-    } catch (err) {
-      console.error(err);
-      // Aun si la función falla, no revelamos detalles del error.
-      setResetMensaje('Si tu número está registrado, te enviamos instrucciones a tu correo.');
-    } finally {
-      setResetEnviando(false);
-    }
-  }
-
   async function handleElegirDia(dia) {
     const nuevoTicket = await elegirDia(persona.id, persona.nombre, dia.id);
     setTickets(prev => [...prev, nuevoTicket]);
     setTab('misEntradas');
+  }
+
+  // Se llama quien ya escaneó el QR correcto de un stand. Actualiza el
+  // progreso local (para el mapa y el trofeo) sin tener que recargar todo.
+  function manejarStandCompletado(standId) {
+    setStandsCompletados(prev => (prev.includes(standId) ? prev : [...prev, standId]));
+  }
+
+  // Confirma la selección de premios de forma DEFINITIVA (no se puede
+  // deshacer ni volver a llamar una vez que ya quedó confirmada).
+  async function manejarConfirmarPremios(idsSeleccionados) {
+    const actualizado = await confirmarPremios(persona.id, idsSeleccionados);
+    setPremios(actualizado);
+  }
+
+  // "Empezar misión" ahora lo maneja AcademyView por dentro (pasa de la
+  // pantalla de bienvenida a la del camino), así que este handler ya no se
+  // usa. Se deja comentado por si vuelve a hacer falta desde afuera:
+  // function manejarEmpezarMision() {
+  //   // Aquí irá el arranque de la misión.
+  // }
+
+  // ---- SOLO MODO_PRUEBA: para poder ver el flujo de premios completo sin
+  // tener que escanear los 7 QR reales uno por uno. No toca Firebase; en
+  // modo prueba todo vive en localStorage (ver dataLayer.js).
+  async function simularCompletarTodosLosStands() {
+    if (!MODO_PRUEBA || !persona) return;
+    for (const stand of STANDS) {
+      await marcarStandCompletado(persona.id, stand.id);
+    }
+    setStandsCompletados(await obtenerStandsCompletados(persona.id));
+  }
+
+  async function simularReiniciarProgreso() {
+    if (!MODO_PRUEBA || !persona) return;
+    reiniciarDatosDePrueba();
+    const [misTickets, standsFrescos, premiosFrescos] = await Promise.all([
+      obtenerTicketsDePersona(persona.id),
+      obtenerStandsCompletados(persona.id),
+      obtenerPremiosPersona(persona.id),
+    ]);
+    setTickets(misTickets);
+    setStandsCompletados(standsFrescos);
+    setPremios(premiosFrescos);
   }
 
   // Vuelve a consultar Firestore antes de mostrar "Mis entradas", para que
@@ -289,18 +229,7 @@ export default function Ingreso() {
 
       <div id="mainContent" className={introDone ? 'visible' : ''}>
 
-        {!persona && (pasoLogin === 'crearPassword' || pasoLogin === 'ingresarPassword') && (
-          <button
-            type="button"
-            className="ingreso-volver-btn"
-            onClick={volverAlCelular}
-            aria-label="Volver"
-          >
-            <img src="/media/Volver.svg" alt="" />
-          </button>
-        )}
-
-        {!persona && pasoLogin === 'celular' && (
+        {!persona && (
           <div className="login-card" id="loginCard">
             <h1 className="login-title">Bienvenido</h1>
             <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
@@ -323,118 +252,83 @@ export default function Ingreso() {
               ¿Aún no tienes una cuenta? <br />
               <a href={URL_REGISTRO_LANDING} target="_blank" rel="noopener noreferrer">Regístrate aquí</a>
             </div>
-          </div>
-        )}
-
-        {!persona && pasoLogin === 'crearPassword' && (
-          <div className="login-card" id="crearPasswordCard">
-            <h1 className="login-title">Crea tu contraseña</h1>
-            <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
-            <p className="login-subtitle">
-              Bienvenido <strong>{telefonoPendiente}</strong><br /><br />
-              Crea una contraseña para proteger tu cuenta
-            </p>
-            <label htmlFor="pwNueva" className="sr-only">Nueva contraseña</label>
-            <div className="staff-password-wrap">
-              <input
-                id="pwNueva"
-                type={mostrarPassword ? 'text' : 'password'}
-                className="login-input staff-password-input"
-                autoComplete="new-password"
-                placeholder="Nueva contraseña"
-                value={passwordValue}
-                onChange={e => setPasswordValue(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
-              />
-              <button
-                type="button"
-                className="staff-password-toggle"
-                onClick={() => setMostrarPassword(v => !v)}
-                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
-              </button>
-            </div>
-            <label htmlFor="pwConfirmar" className="sr-only">Confirmar contraseña</label>
-            <div className="staff-password-wrap">
-              <input
-                id="pwConfirmar"
-                type={mostrarPassword ? 'text' : 'password'}
-                className="login-input staff-password-input"
-                autoComplete="new-password"
-                placeholder="Confirmar contraseña"
-                value={passwordConfirmValue}
-                onChange={e => setPasswordConfirmValue(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleCrearPassword(); }}
-              />
-              <button
-                type="button"
-                className="staff-password-toggle"
-                onClick={() => setMostrarPassword(v => !v)}
-                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
-              </button>
-            </div>
-            {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
-            <button className="login-button" disabled={buscando} onClick={handleCrearPassword}>
-              {buscando ? <><span className="spinner" />Creando...</> : 'Crear'}
-            </button>
-          </div>
-        )}
-
-        {!persona && pasoLogin === 'ingresarPassword' && (
-          <div className="login-card" id="ingresarPasswordCard">
-            <h1 className="login-title">Ingresa tu contraseña</h1>
-            <img className="login-logo" src={LOGO_LOGIN} alt="Logo" />
-            <p className="login-subtitle">Bienvenido de nuevo, <strong>{telefonoPendiente}</strong></p>
-            <label htmlFor="pwLogin" className="sr-only">Contraseña</label>
-            <div className="staff-password-wrap">
-              <input
-                id="pwLogin"
-                type={mostrarPassword ? 'text' : 'password'}
-                className="login-input staff-password-input"
-                autoComplete="current-password"
-                placeholder="Contraseña"
-                value={passwordValue}
-                onChange={e => setPasswordValue(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleIngresarPassword(); }}
-              />
-              <button
-                type="button"
-                className="staff-password-toggle"
-                onClick={() => setMostrarPassword(v => !v)}
-                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                <img src={mostrarPassword ? '/media/NoVer.svg' : '/media/Ver.svg'} alt="" />
-              </button>
-            </div>
-            {passwordError && <div className="error-msg" style={{ display: 'block' }}>{passwordError}</div>}
-            {resetMensaje && <div className="login-register" style={{ display: 'block' }}>{resetMensaje}</div>}
-            <button className="login-button" disabled={buscando} onClick={handleIngresarPassword}>
-              {buscando ? <><span className="spinner" />Ingresando...</> : 'Ingresar'}
-            </button>
-            <div className="login-register">
-              <a href="#" onClick={e => { e.preventDefault(); handleOlvidoPassword(); }}>
-                {resetEnviando ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
-              </a>
-            </div>
-          </div>
-        )}
-
-        {persona && (
-          <div className="app-shell">
-            {navActive !== 2 && (
-              <button
-                type="button"
-                className="staff-logout app-logout-btn"
-                onClick={handleCerrarSesion}
-                aria-label="Cerrar sesión"
-              >
-                <img src="/media/LogOut.svg" alt="" />
-              </button>
+            {MODO_PRUEBA && (
+              <div className="test-ids" style={{ display: 'flex' }}>
+                {TEST_IDS.map(id => (
+                  <button key={id} type="button" onClick={() => { setDocValue(id); buscarEntrada(id); }}>{id}</button>
+                ))}
+              </div>
             )}
+          </div>
+        )}
+
+        {persona && standActivo && (
+          <div className="app-shell">
+            <div className="app-scroll app-scroll--full">
+              <ActividadStand
+                key={standActivo.id}
+                stand={standActivo}
+                persona={persona}
+                completado={standsCompletados.includes(standActivo.id)}
+                standsCompletados={standsCompletados}
+                onCompletar={manejarStandCompletado}
+                onRegresar={() => setStandActivo(null)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mini experiencia de Academy: pantalla completa, sin el nav de abajo,
+            igual que la actividad de un stand. */}
+        {persona && !standActivo && academyAbierto && (
+          <div className="app-shell">
+            <div className="app-scroll app-scroll--full">
+              {/* AcademyView maneja por dentro cuál de sus pantallas se ve
+                  (bienvenida, camino, ...). Desde aquí solo se le dice cómo
+                  salir de la mini experiencia y volver al mapa.
+                  Versión anterior, cuando Academy era una sola pantalla:
+              <AcademyView
+                onRegresar={() => setAcademyAbierto(false)}
+                onEmpezar={manejarEmpezarMision}
+              />
+              */}
+              <AcademyView onSalir={() => setAcademyAbierto(false)} />
+            </div>
+          </div>
+        )}
+
+        {persona && !standActivo && !academyAbierto && !premiosAbierto && politicaAbierta && (
+          <div className="app-shell">
             <div className="app-scroll">
+              <PoliticaView onRegresar={() => setPoliticaAbierta(false)} />
+            </div>
+          </div>
+        )}
+
+        {persona && !standActivo && !academyAbierto && premiosAbierto && (
+          <div className="app-shell">
+            {/* app-scroll--premios anula el padding inferior: el panel de
+                fondo sólido pone su propio respiro y necesita llegar al borde. */}
+            <div className="app-scroll app-scroll--premios">
+              <PremiosView
+                standsCompletados={standsCompletados}
+                premios={premios}
+                onConfirmar={manejarConfirmarPremios}
+                onRegresar={() => setPremiosAbierto(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {persona && !standActivo && !academyAbierto && !premiosAbierto && !politicaAbierta && (
+          <div className="app-shell">
+            {/* Perfil no scrollea: su contenido está pensado para caber en una
+                sola pantalla. */}
+            <div
+              className={`app-scroll ${navActive === 2 ? 'app-scroll--full' : ''} ${
+                navActive === 1 ? 'app-scroll--sin-scroll' : ''
+              }`}
+            >
               {navActive === 0 && (
                 <>
                   <div className="app-header">
@@ -496,34 +390,29 @@ export default function Ingreso() {
                 </>
               )}
 
-              {(navActive === 1 || navActive === 2) && <SeccionNoDisponible />}
+              {navActive === 1 && (
+                <PerfilView
+                  persona={persona}
+                  standsCompletados={standsCompletados}
+                  premios={premios}
+                  onAbrirPremios={() => setPremiosAbierto(true)}
+                  onAbrirPolitica={() => setPoliticaAbierta(true)}
+                />
+              )}
+              {navActive === 2 && (
+                <MapaView
+                  onIniciar={setStandActivo}
+                  standsCompletados={standsCompletados}
+                  premios={premios}
+                  onAbrirPremios={() => setPremiosAbierto(true)}
+                  onAbrirAcademy={() => setAcademyAbierto(true)}
+                  onSimularCompletarTodos={simularCompletarTodosLosStands}
+                  onSimularReiniciar={simularReiniciarProgreso}
+                />
+              )}
             </div>
 
-            <div className="nav-wrapper">
-              <nav
-                className="bottom-nav"
-                style={{ '--nav-hole-x': navHoleX }}
-              >
-                <div className="nav-items-row">
-                  {NAV_ITEMS.map((item, i) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={`nav-item ${i === navActive ? 'active' : ''}`}
-                      aria-label={item.label}
-                      onClick={() => setNavActive(i)}
-                    >
-                      <img src={item.icon} alt="" width={24} height={24} />
-                    </button>
-                  ))}
-                </div>
-              </nav>
-              <div className="nav-indicator" style={{ transform: `translateX(${navActive * 100}%)` }}>
-                <div className="nav-indicator-circle">
-                  <img src={NAV_ITEMS[navActive].iconActivo} alt="" width={26} height={26} />
-                </div>
-              </div>
-            </div>
+            <BottomNav activo={navActive} onCambiar={setNavActive} />
           </div>
         )}
       </div>
@@ -546,132 +435,5 @@ export default function Ingreso() {
         </div>
       )}
     </>
-  );
-}
-
-function SeccionNoDisponible() {
-  return (
-    <div className="snd">
-      <img className="snd-logo" src={LOGO_APP} alt="Logo" />
-      <h2 className="snd-title">        
-        <span className="snd-title-l1">ESTA SECCIÓN</span>
-        <span className="snd-title-l2">SE ACTIVARÁ CUANDO</span>
-        <span className="snd-title-l3">INICIE EXPOWINNERS</span> 
-      </h2>
-      <div className="snd-icon">
-        <img src="/media/Codi.png" alt=""/>;
-      </div>      
-      <p className="snd-text">
-        ¡Te esperamos para vivir<br /><strong>la experiencia completa!</strong>
-      </p>
-    </div>
-  );
-}
-
-function EventCard({ dia, ticket, modo, onElegir, onAbrir }) {
-  const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState('');
-  const partesFecha = dia.fecha.split(' '); // ["25", "JUL"]
-  const yaElegida = modo === 'proximo' && !!ticket;
-
-  async function handleElegir() {
-    setCargando(true);
-    setError('');
-    try {
-      await onElegir();
-    } catch (err) {
-      console.error(err);
-      setError('Ocurrió un error al generar tu entrada. Intenta de nuevo.');
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  return (
-    <div className={`event-card ${yaElegida ? 'ya-elegida' : ''}`}>
-      <div className="event-card-row-top">
-        <div className="event-card-media-wrap">
-          <img
-            className="event-card-media"
-            src={dia.imagen}
-            alt={`${EVENTO.nombre} — ${dia.etiqueta}`}
-            onError={e => { e.target.style.background = 'var(--bg)'; e.target.removeAttribute('src'); }}
-          />
-          <div className="event-card-tag">{dia.etiqueta}</div>
-        </div>
-        <div className="event-card-datebox">
-          <div className="day">{partesFecha[0]}</div>
-          <div className="month">{partesFecha[1]}</div>
-          <div className="year">{EVENTO.anio}</div>
-        </div>
-      </div>
-
-      <div className="event-card-row-bottom">
-        <div className="event-card-namevenue">
-          <div className="event-card-title">{EVENTO.nombre}</div>
-          <div className="event-card-venue">{EVENTO.lugar}, {EVENTO.ciudad}</div>
-        </div>
-
-        <div className="event-card-action">
-          {modo === 'proximo' && !ticket && (
-            <button type="button" className="event-card-cta" disabled={cargando} onClick={handleElegir}>
-              {cargando ? 'Generando...' : 'Adquirir Entrada'}
-            </button>
-          )}
-          {modo === 'proximo' && ticket && (
-            <div className="event-card-status">{ticket.checkedIn ? 'Ingreso registrado' : 'Adquirida'}</div>
-          )}
-          {modo === 'entrada' && (
-            <div
-              className={`event-card-status ${ticket.checkedIn ? 'used' : 'valid clickable'}`}
-              onClick={ticket.checkedIn ? undefined : onAbrir}
-            >
-              {ticket.checkedIn ? 'Ingreso registrado' : 'Ver mi QR'}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {error && <div className="event-card-cta-error">{error}</div>}
-    </div>
-  );
-}
-
-function TicketCompleto({ dia, ticket, nombre }) {
-  const partesFecha = dia.fecha.split(' ');
-  return (
-    <div className="ticket">
-      <div className="t-top">
-        <div className="t-brand">
-          <div className="name">{EVENTO.nombre}</div>
-          <div className={`status-chip ${ticket.checkedIn ? 'used' : 'valid'}`}>
-            {ticket.checkedIn ? 'INGRESO REGISTRADO' : 'VÁLIDA'}
-          </div>
-        </div>
-        <div className="t-datebox">
-          <div>
-            <div className="date-num">{partesFecha[0]}</div>
-            <div className="date-sub">{partesFecha.slice(1).join(' ')}</div>
-          </div>
-          <div className="divider" />
-          <div>
-            <div className="venue">{dia.etiqueta}</div>
-            <div className="venue-sub">{EVENTO.lugar} · {EVENTO.ciudad}</div>
-          </div>
-          <div className="divider" />
-          <div className="attendee-name">{nombre}</div>
-        </div>
-      </div>
-      <div className="perforation"><div className="notch left" /><div className="notch right" /></div>
-      <div className="t-bottom">        
-        <div className="qr-holder">
-          <QRCodeSVG value={ticket.ticketCode} size={168} fgColor="#10131C" bgColor="#ffffff" level="M" />
-        </div>
-        <div className="ticket-code">{ticket.ticketCode}</div>
-        <div className="InfoTicket">
-          <p><strong>¡Importante!</strong> Presenta este código QR para entrar al evento. Recuerda que tu código es personal e intransferible.</p>
-        </div>
-      </div>
-    </div>
   );
 }

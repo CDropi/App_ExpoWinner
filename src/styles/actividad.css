@@ -1,0 +1,423 @@
+/* ============================================================
+   actividad.css — actividad de un stand: portada, preguntas,
+   scanner de QR y pantalla de éxito.
+   ============================================================ */
+
+/* ---- Actividad de un stand: portada / preguntas / scanner / éxito ---- */
+.actividad-stand{
+  position:relative;
+  width:100%;
+  height:100%;
+  box-sizing:border-box;
+  padding:calc(64px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  background-size:cover;
+  background-position:center;
+  background-color:#050505;
+  /* Mientras una marca no tenga su propia imagen de fondo (imagenFondo en
+     config.js): el color de esa marca arriba, cayendo a negro abajo — para
+     que ya se sienta "de esa marca" sin necesitar la foto. */
+  background-image:linear-gradient(180deg, var(--stand-color) 0%, color-mix(in srgb, var(--stand-color) 45%, #050505) 55%, #050505 100%);
+}
+.actividad-stand.tiene-fondo{
+  background-image:linear-gradient(180deg, rgba(0,0,0,.25) 50%, rgba(0,0,0,1) 90%), var(--stand-bg-image);
+}
+
+
+/* Marca del stand: logo si existe, o el nombre en texto si no */
+.actividad-marca-logo{display:block;margin:0 auto;}
+.actividad-marca-logo.grande{height:44px;width:auto;object-fit:contain;}
+.actividad-marca-logo.mediano{height:25px;width:auto;object-fit:contain;}
+
+.actividad-marca-logo.chico{
+  height:42px;
+  width:auto;
+  object-fit:contain;
+  opacity: .5;
+}
+
+.actividad-marca-texto{
+  display:block;
+  font-family:'Tusker',sans-serif;
+  color:#fff;
+  letter-spacing:.01em;
+}
+.actividad-marca-texto.grande{font-size:34px;}
+.actividad-marca-texto.chico{font-size:15px;}
+.actividad-marca-header{text-align:center;margin-bottom:14px;}
+.actividad-marca-header.scanner{margin-bottom:26px;}
+
+/* ---- Portada ---- */
+.actividad-portada{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:10px 6px;
+}
+
+.actividad-portada-marca{
+  text-align:center;
+  margin: 10px 0px 45px;
+}
+
+.actividad-portada-bienvenido{
+  display:block;
+  font-family:'Tusker';
+  font-size:38px;
+  color:#fff;
+  letter-spacing: 2px;
+}
+
+.actividad-portada-card-wrap{
+  position:relative;
+  width:100%;
+  max-width:290px;
+  margin-bottom:22px;
+}
+
+.actividad-portada-card{
+  background:#fff;
+  border-radius:22px;
+  padding:32px 27px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.actividad-portada-texto{
+  font-family:'Montserrat',sans-serif;
+  font-size:14px;
+  color:#111;
+  line-height:1.55;
+  margin:0 0 8px;
+}
+.actividad-portada-texto strong{color:#111;font-weight:700;}
+
+.actividad-portada-nota{
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px;
+  color:#fff;
+  text-align:center;
+  line-height:1.5;
+  margin:22px 4px 0;
+}
+
+.actividad-portada-nota strong{
+  font-weight: 700;
+}
+
+.actividad-btn{
+  padding:8px 25px;
+  border-radius:999px;
+  border:none;
+  background:var(--stand-color, var(--brand-orange));
+  /* color:#111; */ /* antes: siempre negro (se perdía sobre marcas oscuras) */
+  color:var(--stand-texto, #111); /* blanco o negro según el color de la marca */
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13.5px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.actividad-btn:hover,
+.actividad-btn:focus,
+.actividad-btn:active{background:var(--stand-color, var(--brand-orange));outline:none;transform:none;filter:brightness(1.08);}
+
+/* ---- Éxito ---- */
+.actividad-exito{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:10px 6px;
+}
+.actividad-exito.reducida{margin-top: 50px;gap: 40px;}
+
+.actividad-exito-titulo{
+  font-family:'Tusker';
+  font-size:46px;
+  line-height:1;
+  color:#fff;
+  margin:0 0 26px;
+}
+.actividad-exito-titulo strong{
+  font-size: 66px;
+}
+.actividad-exito-titulo.reducido{font-size:48px;}
+
+.actividad-exito-check{
+  width:130px;height:130px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:22px;
+}
+.actividad-exito-check img{width:110px;height:110px;}
+
+.actividad-exito-premio{
+  position:relative;
+  width:100%;
+  max-width:320px;
+  padding:20px 22px 22px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.25);
+  background:linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+  backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+.actividad-exito-premio-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 12px;
+  margin-bottom:12px;
+  border-radius:999px;
+  background:#000;
+  color:#fff;
+  font-family:'Montserrat';
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.actividad-exito-premio-texto{
+  font-family:'Montserrat',sans-serif;
+  font-size:13.5px;
+  color:#fff;
+  line-height:1.55;
+  margin:0;
+}
+.actividad-exito-premio-texto strong{color:#fff;font-weight:700;}
+
+/* ---- Preguntas ---- */
+.actividad-pregunta{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:25px 15px;
+}
+
+.actividad-progreso-fila{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:46px;
+}
+
+.actividad-progreso-label{
+  font-family:'Tusker';
+  font-size:18px;
+  line-height:1.15;
+  color:#fff;
+  flex-shrink:0;
+  letter-spacing: 1px;
+}
+.actividad-progreso{
+  flex:1;
+  position:relative;
+  display:flex;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:8px;
+  /*border:1px solid rgba(255,255,255,.25);*/
+  background:linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.05));
+  backdrop-filter:blur(6px) saturate(140%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
+}
+
+.actividad-progreso-track{
+  width:100%;
+  height:16px;
+  border-radius:999px;
+  background:rgba(255,255,255,.5);
+  overflow:hidden;
+}
+
+.actividad-progreso-barra{
+  height:100%;
+  background:#22c55e;
+  border-radius:999px;
+  transition:width .25s ease;
+}
+
+.actividad-progreso-frac{
+  position: absolute;
+  left: 23px;
+  top: 49.5%;
+  transform: translateY(-50%);
+  font-family: 'Montserrat';
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.actividad-progreso-estrella{
+  position:absolute;
+  right: 4px;
+  top:47%;
+  transform:translateY(-50%);
+  width:30px;height:30px;
+}
+
+.actividad-pregunta-card-wrap{position:relative;margin:8px 10px 20px;}
+.actividad-pregunta-card-sombra{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.4);
+  border-radius:22px;
+  transform:rotate(-4deg);
+  z-index:0;
+}
+
+.actividad-pregunta-card{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position:relative;
+  z-index:1;
+  background:#fff;
+  border-radius:22px;
+  padding:24px 20px;
+  box-shadow:0 20px 45px rgba(0,0,0,.35);
+  transform:rotate(2.5deg);  
+}
+.actividad-pregunta-card-wrap.es-ultima .actividad-pregunta-card{transform:rotate(-4deg);}
+.actividad-pregunta-marca{position:absolute;top:20px;right:20px;}
+
+.actividad-pregunta-texto{
+  width: 100%;
+  font-family:'Tusker';
+  font-size:19px;
+  color:#111;
+  margin:0 0 15px;
+  letter-spacing: 1px;
+}
+
+.actividad-pregunta-texto span{color:var(--stand-color, var(--brand-orange));}
+
+.actividad-pregunta-enunciado{
+  font-family:'Montserrat';
+  font-size:12.5px;
+  color:#111;
+  line-height:1.5;
+  text-align: center;
+  margin: 0 0 5px;
+}
+
+.actividad-opciones{
+  display:flex;
+  flex-direction:column;
+  margin-bottom:2px;
+}
+
+.actividad-opcion{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-align:left;
+  padding:0;
+  border:none;
+  background:transparent;
+  color:#222;
+  font-family:'Montserrat',sans-serif;
+  font-size:13px;
+  cursor:pointer;
+}
+.actividad-opcion:hover,
+.actividad-opcion:focus,
+.actividad-opcion:active{background:transparent;outline:none;transform:none;}
+.actividad-opcion-letra{font-weight:800;flex-shrink:0;color:#111;font-size: 20px;}
+
+.actividad-opcion-texto{
+  flex:1;
+  line-height:1.4;
+  font-weight: 100;
+}
+
+.actividad-opcion-radio{
+  flex-shrink:0;
+  width:20px;height:20px;
+  border-radius:50%;
+  border:2px solid var(--stand-color, var(--brand-orange));
+  position:relative;
+}
+.actividad-opcion.marcada .actividad-opcion-radio{background:var(--stand-color, var(--brand-orange));}
+.actividad-opcion.marcada .actividad-opcion-radio::after{
+  content:'';
+  position:absolute;
+  inset:4px;
+  border-radius:50%;
+  background:#fff;
+}
+
+.actividad-siguiente-btn{
+  padding:7px 35px;
+  border-radius:999px;
+  border:none;
+  background:var(--stand-color, var(--brand-orange));
+  /* color:#FFF; */ /* antes: siempre blanco (se perdía sobre marcas claras) */
+  color:var(--stand-texto, #FFF); /* blanco o negro según el color de la marca */
+  font-family:'Montserrat',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+/* El botón final no usa el color de la marca sino el verde de "enviar",
+   por eso mantiene su propio color de letra fijo. */
+.actividad-siguiente-btn.final{background:#22c55e;color:#FFF;}
+.actividad-siguiente-btn:hover,
+.actividad-siguiente-btn:focus,
+.actividad-siguiente-btn:active{outline:none;transform:none;filter:brightness(1.06);}
+.actividad-siguiente-btn:disabled{opacity:.45;cursor:default;filter:none;}
+
+/* ---- Scanner ---- */
+.actividad-scanner{flex:1;padding-top:6px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;}
+
+.actividad-scanner-titulo{
+  font-family:'Tusker';
+  font-size:56px;
+  line-height:0.75;
+  color:#fff;
+  margin:0 0 22px;
+}
+
+.actividad-scanner-titulo strong{
+  font-size: 35px;
+}
+
+.actividad-scanner-frame{
+  position:relative;
+  width:100%;
+  max-width:280px;
+  aspect-ratio:1 / 1;
+  margin:0 auto 20px;
+  border-radius:20px;
+  overflow:hidden;
+  background:color-mix(in srgb, var(--stand-color, var(--brand-orange)) 35%, rgba(10,10,15,.6));
+  border:1px solid rgba(255,255,255,.25);
+  backdrop-filter:blur(2px);
+}
+.actividad-scanner-frame #reader-actividad{width:100%;height:100%;}
+.actividad-scanner-frame #reader-actividad video{width:100% !important;height:100% !important;object-fit:cover;}
+/* Esquinas del diseño retiradas: html5-qrcode dibuja las suyas al activar la
+   cámara y quedaban dobles. Se dejan por si se necesita revertir. */
+.actividad-scanner-error{
+  font-size:12.5px;
+  color:#fff;
+  background:rgba(0,0,0,.4);
+  border-radius:12px;
+  padding:10px 14px;
+  max-width:300px;
+  margin:14px auto 0;
+  line-height:1.4;
+}

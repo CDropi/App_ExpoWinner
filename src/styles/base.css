@@ -1,6 +1,6 @@
 /* ============================================================
    base.css — variables de diseño y componentes compartidos entre
-   ingreso.html y staff.html.
+   ingreso.html, staff.html y admin.html.
    ============================================================ */
 
 /* ---- Tipografía personalizada: Tusker (títulos) ----
@@ -91,33 +91,64 @@ button:disabled{opacity:.5;cursor:default;}
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ---- Aviso de modo prueba ---- */
+.test-banner{
+  background:rgba(232,178,61,.12);
+  border:1px solid rgba(232,178,61,.35);
+  color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  letter-spacing:.04em;
+  padding:10px 14px;
+  border-radius:10px;
+  text-align:center;
+}
 
 /* ---- Pantalla de bloqueo: solo se puede usar desde celular ---- */
+/* Esta pantalla se salía de la ventana (y por eso aparecía scroll) porque el
+   Codi podía llegar a 700px de alto y el título a 70px sin ningún tope
+   relativo al viewport, y además no tenía padding: en ventanas menos altas
+   que ~1000px el contenido no cabía.
+   Versión anterior: gap:100px y sin padding. */
+/* Alto exacto y overflow:hidden en vez de min-height: esta pantalla es un
+   cierre informativo (no hay nada que leer más abajo), así que en ventanas
+   bajas es mejor que recorte que que aparezca scroll. Con min-height cualquier
+   par de píxeles de sobra activaba la barra, sobre todo porque html/body
+   llevan overflow-x:hidden y eso vuelve el eje vertical "auto".
+   Versión anterior: min-height:100vh / 100dvh sin overflow. */
 .solo-mobil{
-  min-height:100vh;
-  min-height:100dvh;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
   text-align:center;
-  gap: 100px;
+  gap:clamp(32px, 6vw, 100px);
+  padding:40px clamp(20px, 4vw, 60px);
 }
 
+/* Versión anterior: width:300px fijo. */
 .solo-mobil-img {
-  width: 300px;
+  width: clamp(180px, 20vw, 300px);
 }
 
+/* Versión anterior: width:30% y padding:0 50px (el padding de la pantalla ya
+   da el margen contra el borde). */
 .solo-mobil-info {
-  width: 30%;
-  padding: 0 50px;
+  width: 100%;
+  max-width: 520px;
 }
 
+/* El tamaño se adapta a la ventana en vez de quedar fijo en 70px/85px, que
+   es lo que forzaba el alto.
+   Versión anterior: font-size:70px; margin:0 0 50px; line-height:85px; */
 .solo-mobil-title{
   font-family:'Tusker',sans-serif;
   font-weight:700;
-  font-size:70px;
-  margin:0 0 50px;
-  line-height: 85px;
+  font-size:clamp(38px, 4.4vw, 70px);
+  margin:0 0 clamp(24px, 3vw, 50px);
+  line-height:1.2;
 }
 
 .solo-mobil-text{
@@ -132,10 +163,15 @@ button:disabled{opacity:.5;cursor:default;}
   position:relative;
   display:inline-block;
 }
+/* max-height contra el viewport: es lo que evita que el Codi empuje la
+   pantalla más allá de la ventana.
+   Versión anterior: max-width:700px sin tope de alto. */
 .solo-mobil-icon img{
   position:relative;
   z-index:1;
-  max-width:700px;
+  width:auto;
+  max-width:min(700px, 45vw);
+  max-height:80vh;
   display:block;
 }
 
@@ -151,85 +187,18 @@ button:disabled{opacity:.5;cursor:default;}
   z-index:0;
 }
 
-/* ---- Login compartido (público en Ingreso, y AuthGate en Staff) ---- */
+/* ---- Login compartido (público en Ingreso, y AuthGate en Staff/Admin) ---- */
 .login-card{
   width:100%;
   max-width:380px;
   text-align:center;
 }
-
-.login-card#restablecerCard{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.visible#mainContent{
-  display: flex;
-  justify-content: center;
-}
-
-.login-card#ingresarPasswordCard{
-  width: 80%;
-}
-
-.login-card#crearPasswordCard{
-  width: 80%;
-}
-
-/* Botón de "volver" con el mismo lenguaje visual (vidrio líquido) que el
-   logout de Staff — círculo translúcido con blur, esquina superior
-   izquierda de la tarjeta. */
-/* Botón de "volver" fijo en la esquina superior izquierda de la pantalla
-   (no dentro de la tarjeta) — mismo lenguaje visual (vidrio líquido) que
-   el logout de Staff. */
-.ingreso-volver-btn{
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 20;
-  width:40px;height:40px;
-  margin:0;
-  padding:0;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-  border:1px solid rgba(255,255,255,.25);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06));
-  backdrop-filter:blur(6px) saturate(140%);
-  -webkit-backdrop-filter:blur(6px) saturate(140%);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15);
-}
-.ingreso-volver-btn img{
-  width:16px;
-  height:16px;
-  display:block;
-}
-.ingreso-volver-btn:hover img{opacity:.8;}
-.ingreso-volver-btn:hover,
-.ingreso-volver-btn:focus,
-.ingreso-volver-btn:active{
-  outline:none !important;
-  background:linear-gradient(135deg, rgba(255,255,255,.28), rgba(255,255,255,.06)) !important;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), inset 0 -1px 4px rgba(0,0,0,.15) !important;
-  transform:none !important;
-}
-
 .login-title{
   font-family:'Tusker';
   font-size:50px;
   letter-spacing:.04em;
   text-transform:uppercase;
-  margin: 0 0 10px;
-  line-height: 1.1em;
-}
-
-#restablecerCard .login-title {
-  margin-bottom: 30px;
+  margin: 0;
 }
 
 /* ---- Ajustes para celulares muy angostos (~360px, comunes en Android
@@ -246,10 +215,6 @@ button:disabled{opacity:.5;cursor:default;}
   display:block;
 }
 
-#restablecerCard .login-logo {
-  margin-bottom: 30px;
-}
-
 .login-logo-Staff {
   width:200px;
   object-fit:contain;
@@ -261,17 +226,7 @@ button:disabled{opacity:.5;cursor:default;}
   color:var(--paper);
   margin:0 0 14px;
 }
-
 .login-subtitle strong{font-weight:700;}
-
-#restablecerCard .login-subtitle { 
-  width: 80%;
-  font-size: 12px;
-}
-
-#restablecerCard .login-subtitle strong{ 
-  font-size: 15px;
-}
 
 .login-input{
   display: block;
@@ -287,7 +242,6 @@ button:disabled{opacity:.5;cursor:default;}
   background-size:220% 100%, 100% 100%, 100% 100%;
   background-position:0% 0%, 0% 0%, 0% 0%;
   backdrop-filter:blur(1px) saturate(30%) brightness(.9);
-  -webkit-backdrop-filter:blur(1px) saturate(30%) brightness(.9);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.18), inset 0 -1px 6px rgba(0,0,0,.1);
   color:var(--paper);
   font-size:15px;
@@ -334,7 +288,7 @@ button:disabled{opacity:.5;cursor:default;}
 }
 .error-msg strong{font-weight:700;}
 
-/* ---- AuthGate: login por correo/contraseña (Staff) ---- */
+/* ---- AuthGate: login por correo/contraseña (Staff y Admin) ---- */
 .staff-login-card{
   padding:32px 18px;
 }
@@ -377,7 +331,6 @@ button:disabled{opacity:.5;cursor:default;}
   -webkit-tap-highlight-color:transparent;
   margin: 1px 0 0;
 }
-
 .staff-password-toggle img{width:19px;height:19px;display:block;opacity:.5;transition:opacity .15s ease;}
 .staff-password-toggle:hover img,
 .staff-password-toggle:focus img,
@@ -389,10 +342,6 @@ button:disabled{opacity:.5;cursor:default;}
   transform:translateY(-50%);
   color:#fff;
   background:transparent;
-}
-
-#restablecerCard .staff-password-toggle { 
-  top:38%;
 }
 
 .staff-login-button{
@@ -420,15 +369,4 @@ button:disabled{opacity:.5;cursor:default;}
   display:flex;
   align-items:center;
   justify-content:center;
-}
-
-/* Botón de "cerrar sesión" del asistente (reusa .staff-logout de
-   staff.css) — fijo en la esquina superior derecha, espejo del botón de
-   "Volver" que ya está fijo a la izquierda. Solo se muestra dentro del
-   app-shell, cuando ya hay una persona con sesión iniciada. */
-.staff-logout.app-logout-btn{
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 20;
 }
